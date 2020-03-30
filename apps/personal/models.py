@@ -55,7 +55,7 @@ class Order(models.Model):
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     img = models.ImageField(upload_to="image/%Y/%m", default="image/default2.jpg", max_length=100, null=True,
                               blank=True)
-    order_number = models.CharField(max_length=10, verbose_name='工单号')
+    order_number = models.CharField(max_length=10, verbose_name='订单号')
     status = models.CharField(max_length=10, choices=status_choices, default='0', verbose_name='订单状态')
     product_chinese_name = models.CharField(max_length=500, verbose_name='产品中文名')
     comparison_code = models.CharField(max_length=20, verbose_name='对照码')
