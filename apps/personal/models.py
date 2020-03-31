@@ -72,3 +72,14 @@ class Order(models.Model):
     operation_manager = models.ForeignKey(User, related_name='operation_manager', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='运营经理')
     purchaser = models.ForeignKey(User, related_name='purchaser', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='采购人员')
     warehouse_staff = models.ForeignKey(User, related_name='warehouse_staff', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='仓储人员')
+
+
+class Stock(models.Model):
+    finish_status_choices = (('0', '成品'), ('1', '配件'))
+    system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
+    stock_quantity = models.IntegerField(verbose_name='库存数量')
+    finish_status = models.CharField(max_length=10, choices=finish_status_choices, default='0', verbose_name='是否成品')
+    accessories_name = models.CharField(max_length=50, verbose_name='配件名称')
+    position = models.CharField(max_length=500, verbose_name='位置')
+    remark = models.CharField(max_length=500, verbose_name='备注')
+    add_time = models.DateField(default=datetime.datetime.today, verbose_name='添加时间')

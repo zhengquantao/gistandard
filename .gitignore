@@ -101,3 +101,4 @@ ENV/
 # Development
 .idea
 *.db
+db.sqlite3
