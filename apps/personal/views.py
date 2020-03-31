@@ -79,7 +79,7 @@ class PersonalView(LoginRequiredMixin, View):
         ret['order_4'] = order.filter(status="4").count()
         ret['start_date'] = start_date
 
-        role = Role.objects.get(title='销售')
+        role = Role.objects.get(title='运营')
         if 'value' in request.GET and int(request.GET['value']) == 1:
             role = Role.objects.get(title='技术')
         if role:
