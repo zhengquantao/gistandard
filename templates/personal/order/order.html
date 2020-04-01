@@ -67,7 +67,7 @@
                         <th>系统SKU</th>
                         <th>产品中文名</th>
                         <th>对照码</th>
-                        <th class="info">还需采购数量</th>
+                        <th class="info">采购数量</th>
                         <th>是否成品</th>
                         <th>订单状态</th>
                         <th>备注</th>
@@ -111,7 +111,7 @@
 						DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
 						{
 							ajax : {
-								"url":"{% url 'personal-order-list' %}",
+								"url":"{% url 'personal-workorder-list' %}",
 								"data":function ( d ) {
 								    d.main_url="{{ menu.url }}";
 									d.number=$("#number").val();
@@ -214,7 +214,7 @@
 			shadeClose : false,
 			maxmin : true,
 			area : [ '800px', '600px' ],
-			content : "{% url 'personal-order-create' %}",
+			content : "{% url 'personal-workorder-create' %}",
 			end : function() {
 				//关闭时做的事情
 				oDataTable.ajax.reload();
@@ -283,7 +283,7 @@ function doUpdate(id){
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '600px' ],
-		content : [ "{% url 'personal-order-update' %}"+'?id='+id],
+		content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
 		end : function() {
 			//oDataTable.ajax.reload();
             window.location.reload();
@@ -303,7 +303,7 @@ function doDelete(id){
             layer.close(index);
             $.ajax({
                 type: "POST",
-                url : "{% url 'personal-order-delete' %}",
+                url : "{% url 'personal-workorder-delete' %}",
                 data : {"id":id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
                 cache: false,
                 success : function(msg) {

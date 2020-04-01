@@ -11,7 +11,7 @@
     <div class="box box-danger">
         <form class="form-horizontal" id="addForm" method="post">
             {% csrf_token %}
-            <input type="hidden" name='proposer' value="{{ request.user.id }}"/>
+            <input type="hidden" name='operation' value="{{ request.user.id }}"/>
             <div class="box-body">
                 <fieldset>
                     <legend>
@@ -23,7 +23,7 @@
                         <label class="col-sm-2 control-label">订单号</label>
                         <div class="col-sm-3">
                             <input class="form-control" name="order_number" readonly="readonly"
-                                   value="{{ new_number }}{% if order %}{{ order.number }}{% endif %}" type="text"/>
+                                   value="{{ order.order_number }}" type="text"/>
                         </div>
                         <label class="col-sm-2 control-label">系统SKU</label>
                         <div class="col-sm-3">
@@ -64,27 +64,27 @@
                         <div class="col-sm-3">
                             <input class="form-control" name="comparison_code" type="text" value="{{ order.comparison_code }}"/>
                         </div>
-                        <label class="col-sm-2 control-label">采购链接</label>
+                        <label class="col-sm-2 control-label">采购数量</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="purchase_link" type="text" value="{{ order.purchase_link }}"/>
+                            <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity" type="text" oninput="value=value.replace(/[^\d]/g,'')"/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">对照码</label>
-                        <div class="col-sm-3">
-                            <input class="form-control" name="comparison_code" type="text" value="{{ order.comparison_code }}"/>
-                        </div>
                         <label class="col-sm-2 control-label">采购链接</label>
                         <div class="col-sm-3">
                             <input class="form-control" name="purchase_link" type="text" value="{{ order.purchase_link }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">最近30天销量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
                         </div>
                     </div>
 
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">审批人</label>
                         <div class="col-sm-3">
-                            <select class="form-control select2" style="width:100%;" name="approver">
-                                <option value="{{ work_order.approver_id }}">{{ work_order.approver.name }}</option>
+                            <select class="form-control select2" style="width:100%;" name="operation_manager">
+                                <option value="{{ order.approver_id }}">{{ order.approver.name }}</option>
                                 {% for app in approver %}
                                     <option value="{{ app.id }}">{{ app.name }}</option>
                                 {% endfor %}
@@ -92,9 +92,9 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">工单内容</label>
+                        <label class="col-sm-2 control-label">备注内容</label>
                         <div class="col-sm-8">
-                            <textarea class="form-control" name="content" rows="5">{{ work_order.content }}</textarea>
+                            <textarea class="form-control" name="remark" rows="5">{{ order.remark }}</textarea>
                         </div>
                     </div>
 
