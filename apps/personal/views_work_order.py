@@ -12,7 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
 from .models import WorkOrder, WorkOrderRecord, Order
-from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, WorkOrderProjectUploadForm, OrderForm
+from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, WorkOrderProjectUploadForm, OrderForm, OrderBackForm
 from adm.models import Customer
 from rbac.models import Role
 
@@ -22,9 +22,21 @@ User = get_user_model()
 
 class WorkOrderView(LoginRequiredMixin, View):
     """
-    工单视图：根据前端请求的URL 分为个视图：我创建的工单、我审批的工单和我收到的工单
+        工单视图：根据前端请求的URL 分为个视图：我创建的工单、我审批的工单和我收到的工单====
     """
     def get(self, request):
+        user = request.user
+        power = [item.title for item in user.roles.all()]
+
+        if "运营经理" in power:
+            ret = Menu.getMenuByRequestUrl(url=request.path_info)
+            status_list = []
+            for order_status in Order.status_choices:
+                status_dict = dict(item=order_status[0], value=order_status[1])
+                status_list.append(status_dict)
+            ret['status_list'] = status_list
+            return render(request, 'personal/order/order_manager.html', ret)
+
         ret = Menu.getMenuByRequestUrl(url=request.path_info)
         status_list = []
         for order_status in Order.status_choices:
@@ -36,12 +48,12 @@ class WorkOrderView(LoginRequiredMixin, View):
 
 class WorkOrderListView(LoginRequiredMixin, View):
     """
-    工单列表：通过前端传递回来的url来区分不同视图，返回相应列表数据
+        工单列表：通过前端传递回来的url来区分不同视图，返回相应列表数据====
     """
 
     def get(self, request):
         fields = ['order_number', 'system_sku', 'product_chinese_name', 'comparison_code', 'purchase_quantity',
-                  'finish_status', 'status', 'remark', 'id']
+                  'finish_status', 'status', 'remark', 'id', "operation__name"]
         filters = dict()
         if 'main_url' in request.GET and request.GET['main_url'] == '/personal/order_Icrt/':
             filters['operation_id'] = request.user.id
@@ -114,30 +126,29 @@ class WorkOrderDetailView(LoginRequiredMixin, View):
         ret = dict()
         admin_user_list = []
         if 'id' in request.GET and request.GET['id']:
-            work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
-            work_order_record = work_order.workorderrecord_set.all().order_by('add_time')
+            work_order = get_object_or_404(Order, pk=request.GET['id'])
             try:
-                role = Role.objects.get(title="管理")
+                role = Role.objects.get(title="运营经理")
                 admin_user_ids = role.userprofile_set.values('id')
                 for admin_user_id in admin_user_ids:
                     admin_user_list.append(admin_user_id['id'])
             except Exception:
                 pass
-            user_list = [work_order.proposer_id, work_order.approver_id, work_order.receiver_id]
-            user_list.extend(admin_user_list)
+            # user_list = [work_order.proposer, work_order.approver, work_order.receiver]
+            # user_list.extend(admin_user_list)
 
             # 和工单无关联的用户禁止通过手动指定ID的形式非法获取数据
-            if request.user.id in user_list:
-                ret['work_order'] = work_order
-                ret['work_order_record'] = work_order_record
-            else:
-                ret['ban'] = 'ban'
+            # if request.user.id in user_list:
+            ret['work_order'] = work_order
+
+            # else:
+            #     ret['ban'] = 'ban'
         return render(request, 'personal/workorder/workorder_detail.html', ret)
 
 
 class WorkOrderDeleteView(LoginRequiredMixin, View):
     """
-    删除订单
+        删除订单====
     """
     def post(self, request):
         ret = dict(result=False)
@@ -152,7 +163,7 @@ class WorkOrderDeleteView(LoginRequiredMixin, View):
 
 class WorkOrderUpdateView(LoginRequiredMixin, View):
     """
-    订单更新
+        订单更新=====
     """
     def get(self, request):
         status_list = []
@@ -207,18 +218,18 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(res), content_type='application/json')
 
 
-class WrokOrderSendView(LoginRequiredMixin, View):
+class WorkOrderSendView(LoginRequiredMixin, View):
     """
-    工单派发： 由审批人完成工单派发，记录派发状态 '1'，
+        工单派发： 由审批人完成工单派发，记录派发状态 '1'，
     """
 
     def get(self, request):
         ret = dict()
-        engineers = User.objects.filter(department__title='技术部')
-        work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
+        engineers = User.objects.filter(roles__title='采购')
+        work_order = get_object_or_404(Order, pk=request.GET['id'])
         ret['engineers'] = engineers
         ret['work_order'] = work_order
-        ret['record_type'] = "1"
+        ret['record_type'] = "3"
         return render(request, 'personal/workorder/workorder_send.html', ret)
 
     def post(self, request):
@@ -246,10 +257,12 @@ class WrokOrderSendView(LoginRequiredMixin, View):
 
 
 class WorkOrderExecuteView(LoginRequiredMixin, View):
-
+    """
+    提交
+    """
     def get(self, request):
         ret = dict()
-        work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
+        work_order = get_object_or_404(Order, pk=request.GET['id'])
         ret['work_order'] = work_order
         ret['record_type'] = "2"
         return render(request, 'personal/workorder/workorder_execute.html', ret)
@@ -309,31 +322,28 @@ class WorkOrderReturnView(LoginRequiredMixin, View):
 
     def get(self, request):
         ret = dict()
-        work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
-        ret['work_order'] = work_order
-        ret['record_type'] = "0"
+        work_order = get_object_or_404(Order, pk=request.GET['id'])
+        ret['order'] = work_order
+        ret['status'] = "0"
         return render(request, 'personal/workorder/workorder_return.html', ret)
 
     def post(self, request):
         res = dict(status='fail')
-        work_order_record_form = WorkOrderRecordForm(request.POST)
-        work_order = get_object_or_404(WorkOrder, pk=request.POST['work_order'])
+        # work_order_record_form = OrderBackForm(request.POST)
+        work_order = get_object_or_404(Order, pk=request.POST['id'])
+        work_order_record_form = OrderBackForm(request.POST, instance=work_order)
         if work_order_record_form.is_valid():
             status = work_order.status
-            if status == '3':
-                work_order_record_form.save()
-                work_order.status = "0"
-                work_order.save()
-                res['status'] = 'success'
-                try:
-                    SendMessage.send_workorder_email(request.POST['number'])
-                    res['status'] = 'success_send'
-                except Exception as e:
-                    pass
-                work_order.receiver = None
-                work_order.save()
-            else:
-                res['status'] = 'ban'
+            work_order_record_form.save()
+            work_order.status = "0"
+            work_order.save()
+            res['status'] = 'success'
+            try:
+                SendMessage.send_workorder_email(request.POST['number'])
+                res['status'] = 'success_send'
+            except Exception as e:
+                pass
+            work_order.save()
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 

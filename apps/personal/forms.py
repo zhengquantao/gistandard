@@ -44,6 +44,12 @@ class OrderCreateForm(forms.ModelForm):
         fields = '__all__'
 
 
+class OrderBackForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['remark', 'id', 'status', 'operation_manager']
+
+
 class ImageUploadForm(forms.ModelForm):
     class Meta:
         model = User
