@@ -19,6 +19,7 @@ class OrderForm(forms.ModelForm):
         model = Order
         fields = ["status", "order_number", "remark", "system_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30"]
         error_messages = {
+            # "id": {"required": "请输入SKU"},
             "system_sku": {"required": "请输入SKU"},
             "order_number": {"required": "请输入订单号"},
             "status": {"required": "请输入状态"},
@@ -79,9 +80,10 @@ class WorkOrderCreateForm(forms.ModelForm):
 
 class WorkOrderUpdateForm(forms.ModelForm):
     class Meta:
-        model = WorkOrder
-        fields = '__all__'
+        model = Order
+        fields = ["id", "status", "order_number", "remark", "system_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30"]
         error_messages = {
+            "id": {"required": "请输入id"},
             "system_sku": {"required": "请输入SKU"},
             "order_number": {"required": "请输入订单号"},
             "status": {"required": "请输入状态"},

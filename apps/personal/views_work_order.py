@@ -136,23 +136,31 @@ class WorkOrderDetailView(LoginRequiredMixin, View):
 
 
 class WorkOrderDeleteView(LoginRequiredMixin, View):
-
+    """
+    删除订单
+    """
     def post(self, request):
         ret = dict(result=False)
         if 'id' in request.POST and request.POST['id']:
-            status = get_object_or_404(WorkOrder, pk=request.POST['id']).status
+            status = get_object_or_404(Order, pk=request.POST['id']).status_choices
             if int(status) <= 1:
                 id_list = map(int, request.POST.get('id').split(','))
-                WorkOrder.objects.filter(id__in=id_list).delete()
+                Order.objects.filter(id__in=id_list).delete()
                 ret['result'] = True
         return HttpResponse(json.dumps(ret), content_type='application/json')
 
 
 class WorkOrderUpdateView(LoginRequiredMixin, View):
-
+    """
+    订单更新
+    """
     def get(self, request):
         status_list = []
         filters = dict()
+        type_list = []
+        for order_type in Order.finish_status_choices:
+            type_dict = dict(item=order_type[0], value=order_type[1])
+            type_list.append(type_dict)
         if 'id' in request.GET and request.GET['id']:
             order = get_object_or_404(Order, pk=request.GET['id'])
         for order_status in Order.status_choices:
@@ -167,12 +175,13 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
             'order': order,
             'status_list': status_list,
             'approver': approver,
+            'type_list': type_list
         }
         return render(request, 'personal/workorder/workorder_update.html', ret)
 
     def post(self, request):
         res = dict()
-        work_order = get_object_or_404(WorkOrder, pk=request.POST['id'])
+        work_order = get_object_or_404(Order, pk=request.POST['id'])
         work_order_form = WorkOrderUpdateForm(request.POST, instance=work_order)
         if int(work_order.status) <= 1:
             if work_order_form.is_valid():
@@ -181,7 +190,7 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
                 if work_order.status == "2":
                     res['status'] = 'submit'
                     try:
-                        SendMessage.send_workorder_email(request.POST['number'])
+                        SendMessage.send_workorder_email(request.POST['order_number'])
                         res['status'] = 'submit_send'
                     except Exception:
                         pass

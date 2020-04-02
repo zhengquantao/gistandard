@@ -12,11 +12,12 @@
 	<form class="form-horizontal" id="addForm" method="post">
             {% csrf_token %}
             <input type="hidden" name='operation' value="{{ request.user.id }}"/>
+            <input type="hidden" name="id" value="{{ order.id }}">
             <div class="box-body">
                 <fieldset>
                     <legend>
                         <div class="form-group has-feedback">
-                            <div class="col-sm-8">创建订单</div>
+                            <div class="col-sm-8">修改订单</div>
                         </div>
                     </legend>
                     <div class="form-group has-feedback">
@@ -84,7 +85,7 @@
                         <label class="col-sm-2 control-label">审批人</label>
                         <div class="col-sm-3">
                             <select class="form-control select2" style="width:100%;" name="operation_manager">
-                                <option value="{{ order.approver_id }}">{{ order.approver.name }}</option>
+                                <option value="{{ order.operation_manager }}">{{ order.operation_manager }}</option>
                                 {% for app in approver %}
                                     <option value="{{ app.id }}">{{ app.name }}</option>
                                 {% endfor %}
@@ -161,12 +162,12 @@
     })
 
 /*通过按钮关闭弹layer弹出的页面窗口*/
-{#    $(document).ready(function(){#}
-{#        $("#btnCancel").click(function(){#}
-{#            var index = parent.layer.getFrameIndex(window.name); //获取窗口索引#}
-{#            parent.layer.close(index);//关闭窗口#}
-{#        });#}
-{#    });#}
+    $(document).ready(function(){
+        $("#btnCancel").click(function(){
+            var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+            parent.layer.close(index);//关闭窗口
+        });
+    });
 
 /*input 时间输入选择*/
     $(".form_datetime").datetimepicker({
