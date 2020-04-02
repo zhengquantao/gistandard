@@ -55,7 +55,7 @@ urlpatterns = [
     url(r'^personal/workorder_Icrt/delete', order.WorkOrderDeleteView.as_view(), name="personal-workorder-delete"),
     url(r'^personal/workorder_Icrt/update', order.WorkOrderUpdateView.as_view(), name="personal-workorder-update"),
     url(r'^personal/workorder_app/$', order.WorkOrderView.as_view(), name="personal-workorder_app"),
-    url(r'^personal/workorder_app/send', order.WrokOrderSendView.as_view(), name="personal-workorder-send"),
+    url(r'^personal/workorder_app/send', order.WorkOrderSendView.as_view(), name="personal-workorder-send"),
     url(r'^personal/workorder_rec/$', order.WorkOrderView.as_view(), name="personal-workorder_rec"),
     url(r'^personal/workorder_rec/execute', order.WorkOrderExecuteView.as_view(), name="personal-workorder-execute"),
     url(r'^personal/workorder_rec/finish', order.WorkOrderFinishView.as_view(), name="personal-workorder-finish"),
@@ -66,13 +66,4 @@ urlpatterns = [
     url(r'^personal/workorder_all/$', order.WorkOrderView.as_view(), name="personal-workorder_all"),
     url(r'^personal/document/$', order.WorkOrderDocumentView.as_view(), name="personal-document"),
     url(r'^personal/document/list', order.WorkOrderDocumentListView.as_view(), name="personal-document-list"),
-
-
-    url(r'^personal/order_Icrt/$', order.OrderView.as_view(), name="personal-order_Icrt"),
-    url(r'^personal/order_Icrt/list$', order.OrderListView.as_view(), name="personal-order-list"),
-    url(r'^personal/order_Icrt/create$', order.OrderCreateView.as_view(), name="personal-order-create"),
-    url(r'^personal/order_Icrt/detail', order.OrderDetailView.as_view(), name="personal-order-detail"),
-    url(r'^personal/order_Icrt/delete', order.OrderDeleteView.as_view(), name="personal-order-delete"),
-    url(r'^personal/order_Icrt/update', order.OrderUpdateView.as_view(), name="personal-order-update"),
-
 ]

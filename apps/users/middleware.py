@@ -6,6 +6,7 @@ import re
 
 from django.utils.deprecation import MiddlewareMixin
 
+
 class MenuMiddleware(MiddlewareMixin):
     """
     获取菜单：获取用户权限信息，根具用户访问的URL来处理子菜单数据
@@ -68,7 +69,6 @@ class MenuMiddleware(MiddlewareMixin):
                 reveal_menu = [menu['sub_menu'] for menu in menu_data if menu['url'] in request_url][0]
             else:
                 reveal_menu = None
-
             return top_menu, reveal_menu, permission_url_list
         else:
             pass
