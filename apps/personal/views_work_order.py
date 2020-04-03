@@ -28,15 +28,6 @@ class WorkOrderView(LoginRequiredMixin, View):
         user = request.user
         power = [item.title for item in user.roles.all()]
 
-        if "运营经理" in power:
-            ret = Menu.getMenuByRequestUrl(url=request.path_info)
-            status_list = []
-            for order_status in Order.status_choices:
-                status_dict = dict(item=order_status[0], value=order_status[1])
-                status_list.append(status_dict)
-            ret['status_list'] = status_list
-            return render(request, 'personal/order/order_manager.html', ret)
-
         if "采购" in power:
             ret = Menu.getMenuByRequestUrl(url=request.path_info)
 
@@ -47,6 +38,24 @@ class WorkOrderView(LoginRequiredMixin, View):
             ret = Menu.getMenuByRequestUrl(url=request.path_info)
             ret['status_list'] = Order.objects.filter(status='3')
             return render(request, 'personal/order/order_storehouse.html', ret)
+
+        if "运营经理" in power:
+            ret = Menu.getMenuByRequestUrl(url=request.path_info)
+            status_list = []
+            for order_status in Order.status_choices:
+                status_dict = dict(item=order_status[0], value=order_status[1])
+                status_list.append(status_dict)
+            ret['status_list'] = status_list
+            return render(request, 'personal/order/order_manager.html', ret)
+
+        if "管理":
+            ret = Menu.getMenuByRequestUrl(url=request.path_info)
+            status_list = []
+            for order_status in Order.status_choices:
+                status_dict = dict(item=order_status[0], value=order_status[1])
+                status_list.append(status_dict)
+            ret['status_list'] = status_list
+            return render(request, 'personal/order/order_manager.html', ret)
 
         ret = Menu.getMenuByRequestUrl(url=request.path_info)
         status_list = []
@@ -66,15 +75,6 @@ class WorkOrderListView(LoginRequiredMixin, View):
         fields = ['order_number', 'system_sku', 'product_chinese_name', 'comparison_code', 'purchase_quantity',
                   'finish_status', 'status', 'remark', 'id', "operation__name"]
         filters = dict()
-        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/order_Icrt/':
-            filters['operation_id'] = request.user.id
-        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/order_om/':
-            filters['operation_manager_id'] = request.user.id
-            filters['status__in'] = ['0', '2', '3', '4', '5']  # 审批人视图可以看到的工单状态
-        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/order_pur/':
-            filters['purchaser_id'] = request.user.id
-        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/order_war/':
-            filters['warehouse_staff_id'] = request.user.id
 
         if 'number' in request.GET and request.GET['number']:
             filters['order_number__icontains'] = request.GET['number']
@@ -83,15 +83,19 @@ class WorkOrderListView(LoginRequiredMixin, View):
 
         user = request.user
         power = [item.title for item in user.roles.all()]
-        if "运营经理" in power:
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         if "运营" in power:
-            ret = dict(data=list(Order.objects.filter(operation__id=user.id).values(*fields).order_by('-add_time')))
+            filters['operation__id'] = user.id
+            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         if "采购" in power:
-            ret = dict(data=list(Order.objects.filter(purchaser__id=user.id).values(*fields).order_by('-add_time')))
+            filters['purchaser__id'] = user.id
+            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         if "仓库" in power:
             ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-
+        if "运营经理" in power:
+            filters['operation_manager__id'] = user.id
+            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        if "管理" in power:
+            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         # ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
 
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
