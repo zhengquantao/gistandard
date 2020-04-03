@@ -8,22 +8,26 @@
 <div class="box box-danger">
 	<form class="form-horizontal" id="addForm" method="post">
 		{% csrf_token %}
-        <input type="hidden" name='work_order' value="{{ work_order.id }}" />
-        <input type="hidden" name='number' value="{{ work_order.number }}" />
-        <input type="hidden" name='name' value="{{ request.user.id }}" />
-        <input type="hidden" name='record_type' value="{{ record_type }}" />
+
+        <input type="hidden" name='id' value="{{ order.id }}" />
+        <input type="hidden" name='status' value="4" />
         <div class="box-body">
           <fieldset>
+               <div class="form-group has-feedback">
+                    <label class="col-sm-2 control-label">下单数量</label>
+                    <div class="col-sm-3">
+                        <input class="form-control" name="order_quantity" type="text" value="{{ order.purchase_quantity }}"/>
+                    </div>
+                </div>
             <legend>
               <h4>执行确认</h4>
             </legend>
             <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">执行记录</label>
+                <label class="col-sm-2 control-label">备注</label>
                 <div class="col-sm-8">
-                    <textarea class="form-control" name="content" rows="5" ></textarea>
+                    <textarea class="form-control" name="remark2" rows="5" ></textarea>
                 </div>
             </div>
-
           </fieldset>
 		</div>
 		<div class="box-footer ">
@@ -55,17 +59,17 @@
 			success : function(msg) {
 			    layer.closeAll('loading');
 				if (msg.status == 'success'){
-					layer.alert('执行确认完毕！邮件发送异常', {icon: 0},function(index){
+					layer.alert('执行确认完毕！', {icon: 0},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}else if (msg.status == 'fail'){
 					layer.alert('请将信息填写完整！', {icon: 5});
 				}else if (msg.status == 'success_send'){
-					layer.alert('执行确认完毕，通知邮件发送成功！', {icon: 1},function(index){
+					layer.alert('执行确认完毕！', {icon: 1},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}else if (msg.status == 'ban'){
-					layer.alert(' 当前状禁止执行', {icon: 4},function(index){
+					layer.alert(' 当前状禁止执行,订单已经完成', {icon: 4},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}

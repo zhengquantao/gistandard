@@ -47,7 +47,25 @@ class OrderCreateForm(forms.ModelForm):
 class OrderBackForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['remark', 'id', 'status', 'operation_manager']
+        fields = ['remark1', 'id', 'status', 'operation_manager']
+
+
+class OrderSendForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'remark1', 'purchaser']
+
+
+class OrderBugForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['id', 'order_quantity', 'remark2', 'status']
+
+
+class OrderFinallyForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'remark3', 'issued_quantity', 'remaining_stock_quantity', 'warehouse_staff']
 
 
 class ImageUploadForm(forms.ModelForm):
@@ -115,6 +133,7 @@ class WorkOrderRecordForm(forms.ModelForm):
     class Meta:
         model = WorkOrderRecord
         exclude = ['file_content', ]
+
 
 
 class WorkOrderRecordUploadForm(forms.ModelForm):

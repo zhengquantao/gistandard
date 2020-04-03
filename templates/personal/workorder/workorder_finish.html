@@ -8,19 +8,29 @@
 <div class="box box-danger">
 	<form class="form-horizontal" id="addForm" method="post">
 		{% csrf_token %}
-        <input type="hidden" name='work_order' value="{{ work_order.id }}" />
-        <input type="hidden" name='number' value="{{ work_order.number }}" />
-        <input type="hidden" name='name' value="{{ request.user.id }}" />
-        <input type="hidden" name='record_type' value="{{ record_type }}" />
+        <input type="hidden" name='id' value="{{ order.id }}" />
+        <input type="hidden" name='status' value="5"/>
+        <input type="hidden" name="warehouse_staff" value="{{ request.user.id }}">
         <div class="box-body">
           <fieldset>
+              <div class="form-group has-feedback">
+                    <label class="col-sm-2 control-label">已发数量</label>
+                    <div class="col-sm-3">
+                        <input class="form-control" name="issued_quantity" type="text" value="0"/>
+                    </div>
+                  <label class="col-sm-2 control-label">剩余库存</label>
+                    <div class="col-sm-3">
+                        <input class="form-control" name="remaining_stock_quantity" type="text" value="{% if order.remaining_stock_quantity %} {{ order.remaining_stock_quantity }}{% else %}{{ order.purchase_quantity }} {% endif %}"/>
+                    </div>
+                </div>
+
             <legend>
               <h4>工单确认</h4>
             </legend>
             <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">确认记录</label>
+                <label class="col-sm-2 control-label">备注记录</label>
                 <div class="col-sm-8">
-                    <textarea class="form-control" name="content" rows="5" ></textarea>
+                    <textarea class="form-control" name="remark3" rows="5" ></textarea>
                 </div>
             </div>
 
