@@ -1,0 +1,129 @@
+{% extends 'base-layer.html' %}
+{% load staticfiles %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap-datetimepicker.min.css' %}">
+
+{% endblock %}
+{% block main %}
+    <div class="box box-danger">
+        <form class="form-horizontal" id="addForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" name='proposer' value="{{ request.user.id }}"/>
+            <div class="box-body">
+                <fieldset>
+                    <legend>
+                        <div class="form-group has-feedback">
+                            <div class="col-sm-8">创建库存</div>
+                        </div>
+                    </legend>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">系统SKU</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="system_sku" type="text" value="{{ stock.system_sku }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">成品状态</label>
+                        <div class="col-sm-3">
+                            <select class="form-control select2" style="width:100%;" name="finish_status">
+                                <option value="{{ stock.finish_status }}">{{ stock.get_finish_status_display }}</option>
+                                {% for type in type_list %}
+                                    <option value="{{ type.item }}">{{ type.value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">配件名称</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="accessories_name" type="text" value="{{ stock.accessories_name }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">库存数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="stock_quantity" type="text" value="{{ stock.stock_quantity }}"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">位置</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="position" type="text" value="{{ stock.position }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">备注</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="remark" type="text" value="{{ stock.remark }}"/>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="box-footer ">
+                <div class="row span7 text-center ">
+                    <button type="button" id="btnCancel" class="btn btn-default margin-right ">重置</button>
+                    <button type="button" id="btnSave" class="btn btn-info margin-right ">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
+    <script type="text/javascript">
+
+        $("#btnSave").click(function () {
+            var data = $("#addForm").serialize();
+            $.ajax({
+                type: $("#addForm").attr('method'),
+                url: "{% url 'personal-stock-create' %}",
+                data: data,
+                cache: false,
+                beforeSend: function () {
+                    this.layerIndex = layer.load(1, {
+                        shade: [0.1, '#fff'] //0.1透明度的白色背景
+                    });
+                },
+                success: function (msg) {
+                    layer.closeAll('loading');
+                    if (msg.status == 'success') {
+                        layer.alert('库存记录保存成功！', {icon: 1}, function (index) {
+                            parent.layer.closeAll(); //关闭所有弹窗
+                        });
+                    } else if (msg.status == 'fail') {
+                        layer.alert(msg.stock_form_errors, {icon: 5});
+                    }
+                    return;
+                }
+            });
+        });
+
+        /*点取消刷新新页面*/
+        $("#btnCancel").click(function () {
+            window.location.reload();
+
+        })
+
+        /*input 时间输入选择*/
+        $(".form_datetime").datetimepicker({
+            language: 'zh',
+            //weekStart: 1,
+            //todayBtn:  1,
+            autoclose: 1,
+            todayHighlight: 1,
+            //startView: 2,
+            forceParse: 0,
+            showMeridian: 1,
+            //format: 'yyyy-mm-dd'
+        }).on('changeDate', function (ev) {
+            $(this).datetimepicker('hide');
+        });
+
+        // select2
+        $(function () {
+            //Initialize Select2 Elements
+            $(".select2").select2();
+        });
+    </script>
+
+{% endblock %}

@@ -6,7 +6,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from .models import WorkOrder, WorkOrderRecord, Order
+from .models import WorkOrder, WorkOrderRecord, Order, Stock
 
 User = get_user_model()
 
@@ -146,3 +146,25 @@ class WorkOrderProjectUploadForm(forms.ModelForm):
     class Meta:
         model = WorkOrder
         fields = ['file_content']
+
+
+class StockCreateForm(forms.ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['system_sku', 'stock_quantity', 'finish_status', 'accessories_name', 'position', 'remark']
+        error_messages = {
+            "system_sku": {"required": "请输入系统SKU"},
+            "stock_quantity": {"required": "请输入库存数量"},
+            "finish_status": {"required": "请选择成品状态"}
+        }
+
+
+class StockUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['system_sku', 'stock_quantity', 'finish_status', 'accessories_name', 'position', 'remark']
+        error_messages = {
+            "system_sku": {"required": "请输入系统SKU"},
+            "stock_quantity": {"required": "请输入库存数量"},
+            "finish_status": {"required": "请选择成品状态"}
+        }

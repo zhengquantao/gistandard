@@ -82,7 +82,9 @@ class Stock(models.Model):
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     stock_quantity = models.IntegerField(verbose_name='库存数量')
     finish_status = models.CharField(max_length=10, choices=finish_status_choices, default='0', verbose_name='是否成品')
-    accessories_name = models.CharField(max_length=50, verbose_name='配件名称')
-    position = models.CharField(max_length=500, verbose_name='位置')
-    remark = models.CharField(max_length=500, verbose_name='备注')
+    accessories_name = models.CharField(max_length=50, verbose_name='配件名称', blank=True, null=True, default="")
+    position = models.CharField(max_length=500, verbose_name='位置', blank=True, null=True, default="")
+    remark = models.CharField(max_length=500, verbose_name='备注', blank=True, null=True, default="")
     add_time = models.DateField(default=datetime.datetime.today, verbose_name='添加时间')
+    change_time = models.DateField(verbose_name='最后一次修改时间', auto_now=True)
+
