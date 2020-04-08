@@ -95,7 +95,7 @@
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">备注内容</label>
                         <div class="col-sm-8">
-                            <textarea class="form-control" name="remark" rows="5">{{ order.remark }}</textarea>
+                            <textarea class="form-control" name="remark" rows="5">{{ order.remark|default_if_none:""  }}</textarea>
                         </div>
                     </div>
 

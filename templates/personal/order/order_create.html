@@ -25,15 +25,26 @@
                             <input class="form-control" name="order_number" readonly="readonly"
                                    value="{{ new_number }}" type="text"/>
                         </div>
+                        <label class="col-sm-2 control-label">上传图片</label>
+                        <div class="col-sm-3">
+                            <input type="file" id="img" name="img" style="margin-top: 5px;">
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
                         <div class="col-sm-3">
                             <input class="form-control" name="system_sku" type="text" value="{{ order.system_sku }}"/>
                         </div>
-                    </div>
-                    <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">上传图片</label>
+                        <label class="col-sm-2 control-label">母体SKU</label>
                         <div class="col-sm-3">
-                            <input type="file" id="img" name="img">
+                            <input class="form-control" name="maternal_sku" value="{{ order.maternal_sku.sku }}" type="text"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">下单数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="order_quantity" type="text" value="{{ order.order_quantity }}"/>
                         </div>
                         <label class="col-sm-2 control-label">订单状态</label>
                         <div class="col-sm-3">

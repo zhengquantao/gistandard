@@ -16,7 +16,7 @@
   <ol class="breadcrumb">
     <li><a href=""><i class="fa fa-dashboard"></i>办公平台</a></li>
     <li class="active"><a href="{% url 'personal' %}">我的工作台</a></li>
-    <li class="active"><a href="{% url 'personal-workorder_Icrt' %}">订单管理</a></li>
+    <li class="active"><a href="{% url 'personal-workorder_Icrt' %}">库存管理</a></li>
   </ol>
 </section>
 <!-- Main content -->
@@ -37,41 +37,38 @@
                         <i class="glyphicon glyphicon-refresh"></i>刷新
                     </button>
                 </div>
-            </div>
-            <div class="box-header">
-              <form class="form-inline" id="queryForm">
+                <form id="queryForm" class="form-inline pull-right">
                 <div class="form-group searchArea margin-r-5 margin-top-5">
-                    <label>订单号：</label>
-                    <input type="text" name="number" class="form-control inputText" id="number" placeholder="请输入订单号">
+                    <label>系统SKU：</label>
+                    <input type="text" name="number" class="form-control inputText" id="number" placeholder="请输入系统SKU">
                 </div>
-               <div class="form-group searchArea margin-r-5 margin-top-5">
-                <label>订单状态：</label>
-                <select class="form-control inputText select2" name="order_status" id="order_status">
-                    <option></option>
-                    {% for status in status_list %}
-                    <option value={{ status.item }}>{{ status.value }}</option>
-                    {% endfor %}
-                </select>
-              </div>
-                <button type="button" id="btnWorkorderSearch" class="btn btn-default">
-                    <i class="glyphicon glyphicon-search"></i>查询
-                </button>
             </form>
             </div>
+{#            <div class="box-header">#}
+{#              <form class="form-inline" id="queryForm">#}
+{#                <div class="form-group searchArea margin-r-5 margin-top-5">#}
+{#                    <label>系统SKU：</label>#}
+{#                    <input type="text" name="number" class="form-control inputText" id="number" placeholder="请输入系统SKU">#}
+{#                </div>#}
+{#                <button type="button" id="btnWorkorderSearch" class="btn btn-default">#}
+{#                    <i class="glyphicon glyphicon-search"></i>查询#}
+{#                </button>#}
+{#            </form>#}
+{#            </div>#}
              <div class="box-body">
                 <table id="dtbList" class="display" cellspacing="0" width="100%">
                     <thead>
                     <tr valign="middle">
                         <th><input type="checkbox" id="checkAll"></th>
-                        <th>订单号</th>
+                        <th>ID</th>
                         <th>系统SKU</th>
-                        <th>产品中文名</th>
-                        <th>对照码</th>
-                        <th class="info">采购数量</th>
+                        <th>库存数量</th>
                         <th>是否成品</th>
-                        <th>订单状态</th>
-                        <th>申请人</th>
+                        <th>配件名称</th>
+                        <th class="info">位置</th>
                         <th>备注</th>
+                        <th>添加时间</th>
+                        <th>修改时间</th>
                         <th>操作</th>
                     </tr>
                     </thead>
@@ -97,7 +94,7 @@
   <!-- iCheck 1.0.1 -->
   <script type="text/javascript">
 	$(function() {
-	    $('#PERSONAL-WORKORDER').addClass('active');
+	    $('#PERSONAL-ORDER').addClass('active');
 	    $('#{{ menu.code }}').addClass('active');
 
 	});
@@ -112,29 +109,22 @@
 						DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
 						{
 							ajax : {
-								"url":"{% url 'personal-workorder-list' %}",
+								"url":"{% url 'personal-stock-list' %}",
 								"data":function ( d ) {
 								    d.main_url="{{ menu.url }}";
-									d.number=$("#number").val();
-									d.order_status=$("#order_status").val();
+									d.number=$("#system_sku").val();
 								}
 						},
 						columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
                                 {
-									data : "order_number",
+									data : "id",
 								},
 								{
 									data : "system_sku",
 								},
 								{
-									data : "product_chinese_name",
-								},
-                                {
-									data : "comparison_code",
-								},
-                                {
-									data : "purchase_quantity",
+									data : "stock_quantity",
 								},
                                 {
 									data : "finish_status",
@@ -147,44 +137,25 @@
 									}
 								},
                                 {
-									data : "status",
-                                    render : function(data, type, row, meta) {
-										if (data==0){
-                                            var ret="<button class='btn btn-danger btn-xs'>订单已退回</button>";
-											return ret;
-										}if(data==1){
-											var ret="<button class='btn btn-info btn-xs'>新建-保存</button>";
-											return ret;
-
-										}if(data==2) {
-                                            var ret="<button class='btn btn-warning btn-xs'>提交-等待审批</button>";
-											return ret;
-
-                                        }if(data==3) {
-                                            var ret="<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
-											return ret;
-                                        }if(data==4) {
-                                            var ret="<button class='btn btn-primary btn-xs'>已采购-等待确认</button>";
-											return ret;
-                                        }if(data==5) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>工单已完成</button>";
-											return ret;
-                                        }
-									}
+									data : "accessories_name",
 								},
                                 {
-                                    data:"operation__name"
-                                },
+									data : "position",
+								},
                                 {
 									data : "remark",
+								},
+                                {
+									data : "add_time",
+								},
+                                {
+									data : "change_time",
 								},
 								{
 									data : "id",
 									bSortable : "false",
 									render : function(data, type, row, meta) {
-										var ret="<button title='订单详情' onclick='doDetail("
-										+ data + ")'><i class='glyphicon glyphicon-list-alt'></i></button>";
-                                        ret=ret+"<button title='编辑' onclick='doUpdate("
+										var ret="<button title='编辑' onclick='doUpdate("
 										+ data + ")'><i class='glyphicon glyphicon-pencil'></i></button>";
 										 ret=ret+"<button title='删除' onclick='doDelete("
                                             + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
@@ -196,8 +167,13 @@
 	}
 
 	    $("#btnWorkorderSearch").click(function(){
-            oDataTable.ajax.reload();
+	        oDataTable.search(this.value).draw();
+            {#oDataTable.ajax.reload();#}
         });
+
+	$('#number').on( 'keyup', function () {
+	    oDataTable.columns( 2 ).search( this.value ).draw();
+    } );
 
 	//checkbox全选
     $("#checkAll").on("click", function () {
@@ -214,11 +190,11 @@
 	$("#btnCreate").click(function() {
 		var div=layer.open({
 			type : 2,
-			title : '新增订单',
+			title : '新增库存',
 			shadeClose : false,
 			maxmin : true,
 			area : [ '800px', '600px' ],
-			content : "{% url 'personal-workorder-create' %}",
+			content : "{% url 'personal-stock-create' %}",
 			end : function() {
 				//关闭时做的事情
 				oDataTable.ajax.reload();
@@ -256,7 +232,7 @@
 			 	$.ajax({
 					type: "POST",
 					url : "{% url 'adm-equipment:delete' %}",
-					data : {"id":sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
+					data : {"id":sId, csrfmiddlewaretoken: '{{ csrf_token }}'},
 					cache: false,
 					success : function(msg) {
 						if (msg.result){
@@ -276,18 +252,14 @@
 
 });
 
-function doDetail(id){
-    window.location.href="{% url 'personal-workorder-detail' %}?id="+id;
-}
-
 function doUpdate(id){
 	var div=layer.open({
 		type : 2,
-		title : '修改订单',
+		title : '修改库存',
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '600px' ],
-		content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
+		content : [ "{% url 'personal-stock-update' %}"+'?id='+id],
 		end : function() {
 			//oDataTable.ajax.reload();
             window.location.reload();
@@ -307,7 +279,7 @@ function doDelete(id){
             layer.close(index);
             $.ajax({
                 type: "POST",
-                url : "{% url 'personal-workorder-delete' %}",
+                url : "{% url 'personal-stock-delete' %}",
                 data : {"id":id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
                 cache: false,
                 success : function(msg) {
