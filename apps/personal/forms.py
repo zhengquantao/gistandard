@@ -17,19 +17,19 @@ class OrderForm(forms.ModelForm):
     """
     class Meta:
         model = Order
-        fields = ["status", "order_number", "remark", "system_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30"]
+        fields = ["status", "order_number", "remark", "system_sku", "maternal_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "order_quantity", "purchase_link", "operation", "operation_manager", "sales_30"]
         error_messages = {
             # "id": {"required": "请输入SKU"},
             "system_sku": {"required": "请输入SKU"},
             "order_number": {"required": "请输入订单号"},
             "status": {"required": "请输入状态"},
             "product_chinese_name": {"required": "请输入商品名"},
-            "comparison_code": {"required": "请输入对照码"},
+            # "comparison_code": {"required": "请输入对照码"},
             "finish_status": {"required": "请输入品类"},
-            "purchase_link": {"required": "请输入采购链接"},
+            # "purchase_link": {"required": "请输入采购链接"},
             "sales_30": {"required": "请输入最近30天销量"},
-            "purchase_quantity": {"required": "请输入订单数量"},
-            "remark": {"required": "请输入备注内容"},
+            # "purchase_quantity": {"required": "请输入采购数量"},
+            "order_quantity": {"required": "请输入下单数量"},
             "operation": {"required": "请选择提交人"},
             "operation_manager": {"required": "请选择审核人"},
         }

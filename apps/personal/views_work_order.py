@@ -27,38 +27,31 @@ class WorkOrderView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         power = [item.title for item in user.roles.all()]
+        ret = Menu.getMenuByRequestUrl(url=request.path_info)
+        status_list = []
 
         if "采购" in power:
-            ret = Menu.getMenuByRequestUrl(url=request.path_info)
-
             ret['status_list'] = Order.objects.filter(status='3')
             return render(request, 'personal/order/order_bug.html', ret)
 
         if "仓库" in power:
-            ret = Menu.getMenuByRequestUrl(url=request.path_info)
             ret['status_list'] = Order.objects.filter(status='3')
             return render(request, 'personal/order/order_storehouse.html', ret)
 
         if "运营经理" in power:
-            ret = Menu.getMenuByRequestUrl(url=request.path_info)
-            status_list = []
             for order_status in Order.status_choices:
                 status_dict = dict(item=order_status[0], value=order_status[1])
                 status_list.append(status_dict)
             ret['status_list'] = status_list
             return render(request, 'personal/order/order_manager.html', ret)
 
-        if "管理":
-            ret = Menu.getMenuByRequestUrl(url=request.path_info)
-            status_list = []
+        if "管理" in power:
             for order_status in Order.status_choices:
                 status_dict = dict(item=order_status[0], value=order_status[1])
                 status_list.append(status_dict)
             ret['status_list'] = status_list
             return render(request, 'personal/order/order_manager.html', ret)
 
-        ret = Menu.getMenuByRequestUrl(url=request.path_info)
-        status_list = []
         for order_status in Order.status_choices:
             status_dict = dict(item=order_status[0], value=order_status[1])
             status_list.append(status_dict)
