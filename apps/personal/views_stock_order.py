@@ -11,14 +11,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
-from .models import WorkOrder, WorkOrderRecord, Order, StockOrder, MaternalSku
-from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, \
-    WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm, \
-    StockOrderCreateForm
-from adm.models import Customer
+from .models import Order, StockOrder, MaternalSku
+from .forms import StockOrderForm
 from rbac.models import Role
 
-from utils.toolkit import ToolKit, SendMessage
 User = get_user_model()
 
 
@@ -67,51 +63,106 @@ class StockOrderCreateView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict()
         stock_order = StockOrder()
+        maternal_sku = request.POST.get('maternal_sku', "")
+        if maternal_sku:
+            maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
+            if not maternal_sku_object:
+                maternal_sku_object = MaternalSku(sku=maternal_sku)
+                maternal_sku_object.save()
+            data = request.POST
+            # 记住旧的方式
+            _mutable = data._mutable
+            # 设置_mutable为True
+            data._mutable = True
+            # 改变你想改变的数据
+            data['maternal_sku'] = maternal_sku_object.id
+            # 恢复_mutable原来的属性
+            data._mutable = _mutable
 
-        system_sku = request.POST.get("system_sku", "")
-        maternal_sku = request.POST.get("maternal_sku", "")
-        if system_sku or maternal_sku:
-            # 库存
-            order_quantity = request.POST.get("order_quantity", "")
-            if not order_quantity:
-                res['status'] = 'quantity_fail'
-                return HttpResponse(json.dumps(res), content_type='application/json')
-            stock_order.order_quantity = order_quantity
-
-            # 状态
-            status = request.POST.get("status", "")
-            if not status:
-                res['status'] = 'status_fail'
-                return HttpResponse(json.dumps(res), content_type='application/json')
-            stock_order.status = status
-
-            # 审批人
-            operation_manager = request.POST.get("operation_manager", "")
-            if not operation_manager:
-                res['operation_manager'] = 'operation_manager_fail'
-                return HttpResponse(json.dumps(res), content_type='application/json')
-            else:
-                operation_manager_object = User.objects.filter(name=operation_manager).first()
-                stock_order.operation_manager = operation_manager_object
-
-            # 系统sku
-            stock_order.system_sku = system_sku
-
-            # 母体sku
-            if maternal_sku:
-                maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
-                if maternal_sku_object:
-                    stock_order.maternal_sku = maternal_sku_object
-                else:
-                    maternal_sku_object = MaternalSku(sku=maternal_sku)
-                    stock_order.maternal_sku = maternal_sku_object
-
-            # 申请人
-            stock_order.operation = request.user
-            stock_order.save()
+        stock_order_form = StockOrderForm(request.POST, instance=stock_order)
+        if stock_order_form.is_valid():
+            stock_order_form.save()
             res['status'] = 'success'
-            return HttpResponse(json.dumps(res), content_type='application/json')
         else:
-            res['status'] = 'sku_fail'
-            return HttpResponse(json.dumps(res), content_type='application/json')
+            pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+            errors = str(stock_order_form.errors)
+            stock_order_form_errors = re.findall(pattern, errors)
+            res = {
+                'status': 'fail',
+                'stock_order_form_errors': stock_order_form_errors[0]
+            }
+        return HttpResponse(json.dumps(res), content_type='application/json')
+
+
+class StockOrderDeleteView(LoginRequiredMixin, View):
+    """
+        删除订单====
+    """
+    def post(self, request):
+        ret = dict(result=False)
+        if 'id' in request.POST and request.POST['id']:
+            status = get_object_or_404(StockOrder, pk=request.POST['id']).status
+            if int(status) <= 1:
+                id_list = map(int, request.POST.get('id').split(','))
+                StockOrder.objects.filter(id__in=id_list).delete()
+                ret['result'] = True
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+class StockOrderUpdateView(LoginRequiredMixin, View):
+    """
+        订单更新=====
+    """
+    def get(self, request):
+        status_list = []
+        if 'id' in request.GET and request.GET['id']:
+            stock_order = get_object_or_404(StockOrder, pk=request.GET['id'])
+        for stock_order_status in StockOrder.status_choices:
+            status_dict = dict(item=stock_order_status[0], value=stock_order_status[1])
+            status_list.append(status_dict)
+
+        operation_manager = request.user.superior if request.user.superior else request.user
+        ret = {
+            'order': stock_order,
+            'status_list': status_list,
+            'operation_manager': operation_manager,
+        }
+        return render(request, 'personal/stockorder/stockorder_update.html', ret)
+
+    def post(self, request):
+        res = dict()
+        stock_order = get_object_or_404(StockOrder, pk=request.POST['id'])
+
+        maternal_sku = request.POST.get('maternal_sku', "")
+        if maternal_sku:
+            maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
+            if not maternal_sku_object:
+                maternal_sku_object = MaternalSku(sku=maternal_sku)
+                maternal_sku_object.save()
+            data = request.POST
+            # 记住旧的方式
+            _mutable = data._mutable
+            # 设置_mutable为True
+            data._mutable = True
+            # 改变你想改变的数据
+            data['maternal_sku'] = maternal_sku_object.id
+            # 恢复_mutable原来的属性
+            data._mutable = _mutable
+
+        stock_order_form = StockOrderForm(request.POST, instance=stock_order)
+        if int(stock_order.status) <= 1:
+            if stock_order_form.is_valid():
+                stock_order_form.save()
+                res['status'] = 'success'
+            else:
+                pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+                errors = str(stock_order_form.errors)
+                stock_order_form_errors = re.findall(pattern, errors)
+                res = {
+                    'status': 'fail',
+                    'stock_order_form_errors': stock_order_form_errors[0]
+                }
+        else:
+            res['status'] = 'ban'
+        return HttpResponse(json.dumps(res), content_type='application/json')
 
