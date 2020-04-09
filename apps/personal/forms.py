@@ -6,7 +6,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from .models import WorkOrder, WorkOrderRecord, Order, Stock
+from .models import WorkOrder, WorkOrderRecord, Order, Stock, StockOrder
 
 User = get_user_model()
 
@@ -167,4 +167,13 @@ class StockUpdateForm(forms.ModelForm):
             "system_sku": {"required": "请输入系统SKU"},
             "stock_quantity": {"required": "请输入库存数量"},
             "finish_status": {"required": "请选择成品状态"}
+        }
+
+
+class StockOrderCreateForm(forms.ModelForm):
+    class Meta:
+        model = StockOrder
+        fields = ['system_sku', 'order_quantity', 'status']
+        error_messages = {
+            "order_quantity": {"required": "请输入下单数量"},
         }
