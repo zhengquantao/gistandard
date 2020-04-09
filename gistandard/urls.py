@@ -25,6 +25,7 @@ from adm.views import AdmView
 from personal import views as personal_views
 from personal import views_work_order as order
 from personal import views_stock_manage as stock
+from personal import views_stock_order as stockorder
 
 urlpatterns = [
     url(r'^xadmin/', xadmin.site.urls),
@@ -67,6 +68,14 @@ urlpatterns = [
     url(r'^personal/workorder_all/$', order.WorkOrderView.as_view(), name="personal-workorder_all"),
     url(r'^personal/document/$', order.WorkOrderDocumentView.as_view(), name="personal-document"),
     url(r'^personal/document/list', order.WorkOrderDocumentListView.as_view(), name="personal-document-list"),
+
+    # 下单管理
+    url(r'^personal/stockorder_Icrt/$', stockorder.StockOrderView.as_view(), name="personal-stockorder_Icrt"),
+    url(r'^personal/stockorder_Icrt/list', stockorder.StockOrderListView.as_view(), name="personal-stockorder-list"),
+    url(r'^personal/stockorder_Icrt/create', stockorder.StockOrderCreateView.as_view(), name="personal-stockorder-create"),
+    # url(r'^personal/stockorder_Icrt/delete', stockorder.StockOrderDeleteView.as_view(), name="personal-stockorder-delete"),
+    # url(r'^personal/stockorder_Icrt/update', stockorder.StockOrderUpdateView.as_view(), name="personal-stockorder-update"),
+
 
     # 库存管理
     url(r'^personal/stockmanage_Icrt/$', stock.StockView.as_view(), name="personal-stock_Icrt"),

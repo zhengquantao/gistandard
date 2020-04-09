@@ -93,16 +93,24 @@ WSGI_APPLICATION = 'gistandard.wsgi.application'
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'gistandard',
 #         'HOST': 'mysql',
-#         'USER': 'ddadmin',
-#         'PASSWORD': '1234@abcd.com',
+#         'USER': 'root',
+#         'PASSWORD': '123456',
 #         'PORT': '3306'
 #     }
 # }
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    # },
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'gistandard',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
 
