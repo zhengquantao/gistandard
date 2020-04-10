@@ -91,6 +91,7 @@ class PersonalView(LoginRequiredMixin, View):
 
         return render(request, 'personal/personal_index.html', ret)
 
+
 class UserInfoView(LoginRequiredMixin, View):
     """
     个人中心：个人信息查看修改和修改
