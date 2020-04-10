@@ -6,7 +6,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from .models import WorkOrder, WorkOrderRecord, Order, Stock, StockOrder
+from .models import WorkOrder, WorkOrderRecord, Order, Stock, StockOrder, MaternalSku
 
 User = get_user_model()
 
@@ -170,10 +170,39 @@ class StockUpdateForm(forms.ModelForm):
         }
 
 
-class StockOrderCreateForm(forms.ModelForm):
+class StockOrderForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super(StockOrderForm, self).clean()
+        system_sku = cleaned_data.get("system_sku", "")
+        maternal_sku = cleaned_data.get("maternal_sku", "")
+        if not system_sku and not maternal_sku:
+            raise forms.ValidationError("请输入sku")
+
     class Meta:
         model = StockOrder
-        fields = ['system_sku', 'order_quantity', 'status']
+        fields = ['system_sku', 'order_quantity', 'status', 'operation', 'operation_manager', 'maternal_sku']
         error_messages = {
             "order_quantity": {"required": "请输入下单数量"},
+            "status": {"required": "请输入状态"},
+            "operation_manager": {"required": "请输入审批人"},
+            "operation": {"required": "请输入申请人"},
         }
+
+
+# class StockOrderUpdateForm(forms.ModelForm):
+#     def clean(self):
+#         cleaned_data = super(StockOrderCreateForm, self).clean()
+#         system_sku = cleaned_data.get("system_sku", "")
+#         maternal_sku = cleaned_data.get("maternal_sku", "")
+#         if not system_sku and not maternal_sku:
+#             raise forms.ValidationError("请输入sku")
+#
+#     class Meta:
+#         model = StockOrder
+#         fields = ['system_sku', 'order_quantity', 'status', 'operation', 'operation_manager', 'maternal_sku']
+#         error_messages = {
+#             "order_quantity": {"required": "请输入下单数量"},
+#             "status": {"required": "请输入状态"},
+#             "operation_manager": {"required": "请输入审批人"},
+#             "operation": {"required": "请输入申请人"},
+#         }

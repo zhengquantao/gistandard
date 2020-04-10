@@ -73,8 +73,8 @@ urlpatterns = [
     url(r'^personal/stockorder_Icrt/$', stockorder.StockOrderView.as_view(), name="personal-stockorder_Icrt"),
     url(r'^personal/stockorder_Icrt/list', stockorder.StockOrderListView.as_view(), name="personal-stockorder-list"),
     url(r'^personal/stockorder_Icrt/create', stockorder.StockOrderCreateView.as_view(), name="personal-stockorder-create"),
-    # url(r'^personal/stockorder_Icrt/delete', stockorder.StockOrderDeleteView.as_view(), name="personal-stockorder-delete"),
-    # url(r'^personal/stockorder_Icrt/update', stockorder.StockOrderUpdateView.as_view(), name="personal-stockorder-update"),
+    url(r'^personal/stockorder_Icrt/delete', stockorder.StockOrderDeleteView.as_view(), name="personal-stockorder-delete"),
+    url(r'^personal/stockorder_Icrt/update', stockorder.StockOrderUpdateView.as_view(), name="personal-stockorder-update"),
 
 
     # 库存管理

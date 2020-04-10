@@ -152,9 +152,7 @@
 									data : "id",
 									bSortable : "false",
 									render : function(data, type, row, meta) {
-										var ret="<button title='订单详情' onclick='doDetail("
-										+ data + ")'><i class='glyphicon glyphicon-list-alt'></i></button>";
-                                        ret=ret+"<button title='编辑' onclick='doUpdate("
+										var ret="<button title='编辑' onclick='doUpdate("
 										+ data + ")'><i class='glyphicon glyphicon-pencil'></i></button>";
 										 ret=ret+"<button title='删除' onclick='doDelete("
                                             + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
@@ -257,7 +255,7 @@ function doUpdate(id){
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '600px' ],
-		content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
+		content : [ "{% url 'personal-stockorder-update' %}"+'?id='+id],
 		end : function() {
 			//oDataTable.ajax.reload();
             window.location.reload();
@@ -277,7 +275,7 @@ function doDelete(id){
             layer.close(index);
             $.ajax({
                 type: "POST",
-                url : "{% url 'personal-workorder-delete' %}",
+                url : "{% url 'personal-stockorder-delete' %}",
                 data : {"id":id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
                 cache: false,
                 success : function(msg) {
