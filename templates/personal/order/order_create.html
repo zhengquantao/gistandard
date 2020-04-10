@@ -25,10 +25,13 @@
                             <input class="form-control" name="order_number" readonly="readonly"
                                    value="{{ new_number }}" type="text"/>
                         </div>
-                        <label class="col-sm-2 control-label">上传图片</label>
+                        <label class="col-sm-2 control-label">审批人</label>
                         <div class="col-sm-3">
-                            <input type="file" id="img" name="img" style="margin-top: 5px;">
+                            <span class="form-control" readonly="readonly">{{ operation_manager.name }}</span>
+                            <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}"
+                                   type="hidden"/>
                         </div>
+
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
@@ -37,33 +40,22 @@
                         </div>
                         <label class="col-sm-2 control-label">母体SKU</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="maternal_sku" value="{{ order.maternal_sku.sku }}" type="text"/>
+                            <input class="form-control" name="maternal_sku" value="{{ order.maternal_sku.sku }}"
+                                   type="text"/>
                         </div>
                     </div>
 
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">下单数量</label>
-                        <div class="col-sm-3">
-                            <input class="form-control" name="order_quantity" type="text" value="{{ order.order_quantity }}"/>
-                        </div>
                         <label class="col-sm-2 control-label">订单状态</label>
                         <div class="col-sm-3">
                             <select class="form-control select2" style="width:100%;" name="status">
-                                <option value="{{ order.status }}">{{ order.get_status_display }}</option>
                                 <option value="1">新建-保存</option>
                                 <option value="2">提交-等待审批</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">产品中文名</label>
-                        <div class="col-sm-3">
-                            <input class="form-control" name="product_chinese_name" type="text" value="{{ order.product_chinese_name }}"/>
-                        </div>
                         <label class="col-sm-2 control-label">是否成品</label>
                         <div class="col-sm-3">
                             <select class="form-control select2" style="width:100%;" name="finish_status">
-                                <option value="{{ order.finish_status }}">{{ order.get_finish_status_display }}</option>
                                 {% for type in type_list %}
                                     <option value="{{ type.item }}">{{ type.value }}</option>
                                 {% endfor %}
@@ -71,35 +63,38 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">产品中文名</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="product_chinese_name" type="text"
+                                   value="{{ order.product_chinese_name }}"/>
+                        </div>
                         <label class="col-sm-2 control-label">对照码</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="comparison_code" type="text" value="{{ order.comparison_code }}"/>
+                            <input class="form-control" name="comparison_code" type="text"
+                                   value="{{ order.comparison_code }}"/>
                         </div>
+
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">采购数量</label>
                         <div class="col-sm-3">
-                            <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity" type="text" oninput="value=value.replace(/[^\d]/g,'')"/>
+                            <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity"
+                                   type="text" oninput="value=value.replace(/[^\d]/g,'')"/>
+                        </div>
+                        <label class="col-sm-2 control-label">采购链接</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="purchase_link" type="text"
+                                   value="{{ order.purchase_link }}"/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">采购链接</label>
-                        <div class="col-sm-3">
-                            <input class="form-control" name="purchase_link" type="text" value="{{ order.purchase_link }}"/>
-                        </div>
                         <label class="col-sm-2 control-label">最近30天销量</label>
                         <div class="col-sm-3">
                             <input class="form-control" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
                         </div>
-                    </div>
-
-                    <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">审批人</label>
+                        <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
-                            <select class="form-control select2" style="width:100%;" name="operation_manager">
-                                <option value="{{ order.approver_id }}">{{ order.approver.name }}</option>
-                                {% for app in approver %}
-                                    <option value="{{ app.id }}">{{ app.name }}</option>
-                                {% endfor %}
-                            </select>
+                            <input type="file" id="img" name="img" style="margin-top: 5px;">
                         </div>
                     </div>
                     <div class="form-group has-feedback">
