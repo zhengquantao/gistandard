@@ -11,9 +11,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
-from .models import WorkOrder, WorkOrderRecord, Order
+from .models import WorkOrder, WorkOrderRecord, Order, MaternalSku
 from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm
-from adm.models import Customer
 from rbac.models import Role
 
 from utils.toolkit import ToolKit, SendMessage
@@ -65,12 +64,12 @@ class WorkOrderListView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        fields = ['order_number', 'system_sku', 'product_chinese_name', 'comparison_code', 'purchase_quantity',
+        fields = ['system_sku', 'maternal_sku__sku','product_chinese_name', 'comparison_code', 'purchase_quantity',
                   'finish_status', 'status', 'remark', 'id', "operation__name"]
         filters = dict()
 
-        if 'number' in request.GET and request.GET['number']:
-            filters['order_number__icontains'] = request.GET['number']
+        if 'system_sku' in request.GET and request.GET['system_sku']:
+            filters['system_sku__icontains'] = request.GET['system_sku']
         if 'order_status' in request.GET and request.GET['order_status']:
             filters['status'] = request.GET['order_status']
 
@@ -101,8 +100,7 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
             type_dict = dict(item=order_type[0], value=order_type[1])
             type_list.append(type_dict)
 
-        role = get_object_or_404(Role, title='运营经理')
-        approver = role.userprofile_set.all()
+        operation_manager = request.user.superior if request.user.superior else request.user
         try:
             number = Order.objects.latest('order_number').order_number
         except Order.DoesNotExist:
@@ -110,7 +108,7 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
         new_number = ToolKit.bulidNumber('SX', 9, number)
         ret = {
             'type_list': type_list,
-            'approver': approver,
+            'operation_manager': operation_manager,
             'new_number': new_number
         }
         return render(request, 'personal/order/order_create.html', ret)
@@ -118,7 +116,23 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict()
         order = Order()
-        order_form = OrderForm(request.POST, instance=order)
+        maternal_sku = request.POST.get('maternal_sku', "")
+        if maternal_sku:
+            maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
+            if not maternal_sku_object:
+                maternal_sku_object = MaternalSku(sku=maternal_sku)
+                maternal_sku_object.save()
+            data = request.POST
+            # 记住旧的方式
+            _mutable = data._mutable
+            # 设置_mutable为True
+            data._mutable = True
+            # 改变你想改变的数据
+            data['maternal_sku'] = maternal_sku_object.id
+            # 恢复_mutable原来的属性
+            data._mutable = _mutable
+
+        order_form = OrderForm(request.POST,  request.FILES, instance=order)
         if order_form.is_valid():
             order_form.save()
             res['status'] = 'success'
@@ -218,7 +232,6 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
     """
     def get(self, request):
         status_list = []
-        filters = dict()
         type_list = []
         for order_type in Order.finish_status_choices:
             type_dict = dict(item=order_type[0], value=order_type[1])
@@ -228,15 +241,12 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
         for order_status in Order.status_choices:
             status_dict = dict(item=order_status[0], value=order_status[1])
             status_list.append(status_dict)
-        if request.user.department_id == 9:
-            filters['belongs_to_id'] = request.user.id
 
-        role = get_object_or_404(Role, title='运营经理')
-        approver = role.userprofile_set.all()
+        operation_manager = request.user.superior if request.user.superior else request.user
         ret = {
             'order': order,
             'status_list': status_list,
-            'approver': approver,
+            'operation_manager': operation_manager,
             'type_list': type_list
         }
         return render(request, 'personal/workorder/workorder_update.html', ret)
@@ -244,7 +254,7 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict()
         work_order = get_object_or_404(Order, pk=request.POST['id'])
-        work_order_form = WorkOrderUpdateForm(request.POST, instance=work_order)
+        work_order_form = WorkOrderUpdateForm(request.POST, request.FILES, instance=work_order)
         if int(work_order.status) <= 1:
             if work_order_form.is_valid():
                 work_order_form.save()
