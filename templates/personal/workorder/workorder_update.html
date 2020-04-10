@@ -101,7 +101,11 @@
                         </div>
                         <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
-                            <input type="file" name="img" id="img">
+                                <label for="upload" class="control-label">
+                                    <img src="/media/{% if order.img %}{{ order.img }}{% else %} image/default2.png {% endif %}" id="upload_img" height="40" width="40">
+                                </label>
+                                <input type="file" accept="image/*" style="display: none" name="img" id="upload">
+{#                            <input type="file" name="img" id="img">#}
                         </div>
                     </div>
                     <div class="form-group has-feedback">
@@ -128,7 +132,6 @@
     <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
     <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
     <script type="text/javascript">
-
          $("#upload").change(function(){
             var fileReader = new FileReader();
             fileReader.readAsDataURL(this.files[0]);// 读取文件是需要时间的
@@ -136,7 +139,6 @@
             $("#upload_img").attr("src", fileReader.result);
             };
         });
-
         $("#btnSave").click(function () {
             var data = new FormData($("#addForm")[0]);
             $.ajax({
