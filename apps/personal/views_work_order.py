@@ -254,6 +254,7 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict()
         work_order = get_object_or_404(Order, pk=request.POST['id'])
+        print(request.POST, '------------------')
         work_order_form = WorkOrderUpdateForm(request.POST, request.FILES, instance=work_order)
         if int(work_order.status) <= 1:
             if work_order_form.is_valid():

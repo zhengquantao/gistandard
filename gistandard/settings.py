@@ -109,7 +109,7 @@ DATABASES = {
         'NAME': 'gistandard',
         'USER': 'root',
         'PASSWORD': '123456',
-        'HOST': '127.0.0.1',
+        'HOST': '192.168.1.103',
         'PORT': '3306',
     }
 }
