@@ -102,10 +102,9 @@
                         <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
                                 <label for="upload" class="control-label">
-                                    <img src="/media/{% if order.img %}{{ order.img }}{% else %} image/default2.png {% endif %}" id="upload_img" height="40" width="40">
+                                    <img src="/media/{% if order.img %}{{ order.img }}{% else %}image/default2.png{% endif %}" id="upload_img" height="40" width="40">
                                 </label>
                                 <input type="file" accept="image/*" style="display: none" name="img" id="upload">
-{#                            <input type="file" name="img" id="img">#}
                         </div>
                     </div>
                     <div class="form-group has-feedback">
@@ -145,7 +144,7 @@
                 type: $("#addForm").attr('method'),
                 url: "{% url 'personal-workorder-update' %}",
                 data: data,
-                 contentType: false,
+                contentType: false,
                 processData: false,
                 cache: false,
                 beforeSend: function () {
@@ -156,17 +155,13 @@
                 success: function (msg) {
                     layer.closeAll('loading');
                     if (msg.status == 'success') {
-                        layer.alert('工单保存成功！', {icon: 1}, function (index) {
+                        layer.alert('订单保存成功！', {icon: 1}, function (index) {
                             parent.layer.closeAll();
                         });
                     } else if (msg.status == 'fail') {
                         layer.alert(msg.work_order_form_errors, {icon: 5});
                     } else if (msg.status == 'submit') {
-                        layer.alert('工单申请已提交, 邮件发送异常！', {icon: 0}, function (index) {
-                            parent.layer.closeAll();
-                        });
-                    } else if (msg.status == 'submit_send') {
-                        layer.alert('工单申请已提交, 邮件发送成功！', {icon: 1}, function (index) {
+                        layer.alert('订单申请已提交, 请等待审批！', {icon: 0}, function (index) {
                             parent.layer.closeAll();
                         });
                     } else if (msg.status == 'ban') {

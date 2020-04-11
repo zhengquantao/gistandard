@@ -24,37 +24,19 @@ class WorkOrderView(LoginRequiredMixin, View):
         工单视图：根据前端请求的URL 分为个视图：我创建的工单、我审批的工单和我收到的工单====
     """
     def get(self, request):
-        user = request.user
-        power = [item.title for item in user.roles.all()]
+        # user = request.user
+        # power = [item.title for item in user.roles.all()]
         ret = Menu.getMenuByRequestUrl(url=request.path_info)
         status_list = []
-
-        if "采购" in power:
-            ret['status_list'] = Order.objects.filter(status='3')
-            return render(request, 'personal/order/order_bug.html', ret)
-
-        if "仓库" in power:
-            ret['status_list'] = Order.objects.filter(status='3')
-            return render(request, 'personal/order/order_storehouse.html', ret)
-
-        if "运营经理" in power:
-            for order_status in Order.status_choices:
-                status_dict = dict(item=order_status[0], value=order_status[1])
-                status_list.append(status_dict)
-            ret['status_list'] = status_list
-            return render(request, 'personal/order/order_manager.html', ret)
-
-        if "管理" in power:
-            for order_status in Order.status_choices:
-                status_dict = dict(item=order_status[0], value=order_status[1])
-                status_list.append(status_dict)
-            ret['status_list'] = status_list
-            return render(request, 'personal/order/order_manager.html', ret)
-
         for order_status in Order.status_choices:
             status_dict = dict(item=order_status[0], value=order_status[1])
             status_list.append(status_dict)
         ret['status_list'] = status_list
+        # if "采购" in power:
+        #     ret['status_list'] = Order.objects.filter(status='3')
+        #
+        # if "仓库" in power:
+        #     ret['status_list'] = Order.objects.filter(status='3')
         return render(request, 'personal/order/order.html', ret)
 
 
@@ -73,26 +55,34 @@ class WorkOrderListView(LoginRequiredMixin, View):
         if 'order_status' in request.GET and request.GET['order_status']:
             filters['status'] = request.GET['order_status']
 
-        user = request.user
-        power = [item.title for item in user.roles.all()]
-        if "运营" in power:
-            filters['operation__id'] = user.id
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-        if "采购" in power:
-            filters['purchaser__id'] = user.id
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-        if "仓库" in power:
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-        if "运营经理" in power:
-            filters['operation_manager__id'] = user.id
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-        if "管理" in power:
-            ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
-        # ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        # user = request.user
+        # power = [item.title for item in user.roles.all()]
+        # if "运营" in power:
+        #     filters['operation__id'] = user.id
+        #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        # if "采购" in power:
+        #     filters['purchaser__id'] = user.id
+        #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        # if "仓库" in power:
+        #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        # if "运营经理" in power:
+        #     filters['operation_manager__id'] = user.id
+        #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        # if "管理" in power:
+        #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_Icrt/':
+            filters['operation__id'] = request.user.id
+        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_app/':
+            filters['operation_manager__id'] = request.user.id
+            filters['status__in'] = ['0', '2', '3', '4', '5']  # 审批人视图可以看到的工单状态
+        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_rec/':
+            filters['purchaser__id'] = request.user.id
+        ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
 
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
+# 创建
 class WorkOrderCreateView(LoginRequiredMixin, View):
     def get(self, request):
         type_list = []
@@ -154,49 +144,61 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(res), content_type='application/json')
 
 
+# 详情
 class WorkOrderDetailView(LoginRequiredMixin, View):
 
     def get(self, request):
         ret = dict()
         admin_user_list = []
-        user = request.user
-        power = [item.title for item in user.roles.all()]
-        if "运营经理" in power:
-            if 'id' in request.GET and request.GET['id']:
-                work_order = get_object_or_404(Order, pk=request.GET['id'])
-                try:
-                    role = Role.objects.get(title="运营经理")
-                    admin_user_ids = role.userprofile_set.values('id')
-                    for admin_user_id in admin_user_ids:
-                        admin_user_list.append(admin_user_id['id'])
-                except Exception:
-                    pass
-                ret['work_order'] = work_order
-            return render(request, 'personal/workorder/workorder_detail.html', ret)
-        if "采购" in power:
-            if 'id' in request.GET and request.GET['id']:
-                work_order = get_object_or_404(Order, pk=request.GET['id'])
-                try:
-                    role = Role.objects.get(title="采购")
-                    admin_user_ids = role.userprofile_set.values('id')
-                    for admin_user_id in admin_user_ids:
-                        admin_user_list.append(admin_user_id['id'])
-                except Exception:
-                    pass
-                ret['work_order'] = work_order
-            return render(request, 'personal/order/order_bug_detail.html', ret)
-        if "仓库" in power:
-            if 'id' in request.GET and request.GET['id']:
-                work_order = get_object_or_404(Order, pk=request.GET['id'])
-                try:
-                    role = Role.objects.get(title="仓库")
-                    admin_user_ids = role.userprofile_set.values('id')
-                    for admin_user_id in admin_user_ids:
-                        admin_user_list.append(admin_user_id['id'])
-                except Exception:
-                    pass
-                ret['work_order'] = work_order
-            return render(request, 'personal/order/order_storehouse_detail.html', ret)
+        # user = request.user
+        # power = [item.title for item in user.roles.all()]
+        if 'id' in request.GET and request.GET['id']:
+            work_order = get_object_or_404(Order, pk=request.GET['id'])
+            # try:
+            #     role = Role.objects.get(title="运营经理")
+            #     admin_user_ids = role.userprofile_set.values('id')
+            #     for admin_user_id in admin_user_ids:
+            #         admin_user_list.append(admin_user_id['id'])
+            # except Exception:
+            #     pass
+            ret['work_order'] = work_order
+        return render(request, 'personal/workorder/workorder_detail.html', ret)
+        # if "运营经理" in power:
+        #     if 'id' in request.GET and request.GET['id']:
+        #         work_order = get_object_or_404(Order, pk=request.GET['id'])
+        #         try:
+        #             role = Role.objects.get(title="运营经理")
+        #             admin_user_ids = role.userprofile_set.values('id')
+        #             for admin_user_id in admin_user_ids:
+        #                 admin_user_list.append(admin_user_id['id'])
+        #         except Exception:
+        #             pass
+        #         ret['work_order'] = work_order
+        #     return render(request, 'personal/workorder/workorder_detail.html', ret)
+        # if "采购" in power:
+        #     if 'id' in request.GET and request.GET['id']:
+        #         work_order = get_object_or_404(Order, pk=request.GET['id'])
+        #         try:
+        #             role = Role.objects.get(title="采购")
+        #             admin_user_ids = role.userprofile_set.values('id')
+        #             for admin_user_id in admin_user_ids:
+        #                 admin_user_list.append(admin_user_id['id'])
+        #         except Exception:
+        #             pass
+        #         ret['work_order'] = work_order
+        #     return render(request, 'personal/order/order_bug_detail.html', ret)
+        # if "仓库" in power:
+        #     if 'id' in request.GET and request.GET['id']:
+        #         work_order = get_object_or_404(Order, pk=request.GET['id'])
+        #         try:
+        #             role = Role.objects.get(title="仓库")
+        #             admin_user_ids = role.userprofile_set.values('id')
+        #             for admin_user_id in admin_user_ids:
+        #                 admin_user_list.append(admin_user_id['id'])
+        #         except Exception:
+        #             pass
+        #         ret['work_order'] = work_order
+        #     return render(request, 'personal/order/order_storehouse_detail.html', ret)
 
         # if 'id' in request.GET and request.GET['id']:
         #     work_order = get_object_or_404(Order, pk=request.GET['id'])
@@ -211,6 +213,7 @@ class WorkOrderDetailView(LoginRequiredMixin, View):
         # return render(request, 'personal/workorder/workorder_detail.html', ret)
 
 
+# 删除
 class WorkOrderDeleteView(LoginRequiredMixin, View):
     """
         删除订单====
@@ -226,6 +229,7 @@ class WorkOrderDeleteView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(ret), content_type='application/json')
 
 
+# 更新
 class WorkOrderUpdateView(LoginRequiredMixin, View):
     """
         订单更新=====
@@ -254,7 +258,6 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict()
         work_order = get_object_or_404(Order, pk=request.POST['id'])
-        print(request.POST, '------------------')
         work_order_form = WorkOrderUpdateForm(request.POST, request.FILES, instance=work_order)
         if int(work_order.status) <= 1:
             if work_order_form.is_valid():
@@ -262,11 +265,6 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
                 res['status'] = 'success'
                 if work_order.status == "2":
                     res['status'] = 'submit'
-                    try:
-                        SendMessage.send_workorder_email(request.POST['order_number'])
-                        res['status'] = 'submit_send'
-                    except Exception:
-                        pass
             else:
                 pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
                 errors = str(work_order_form.errors)
@@ -280,6 +278,7 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(res), content_type='application/json')
 
 
+# 派发
 class WorkOrderSendView(LoginRequiredMixin, View):
     """
         订单派发:运营经理完成 派发运营的订单给采购，

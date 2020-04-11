@@ -100,7 +100,8 @@
 <script type="text/javascript">
 
 	$("#btnSave").click(function(){
-		var data = $("#addForm").serialize();
+		{#var data = $("#addForm").serialize();#}
+		var data = new FormData($("#addForm")[0]);
 		$.ajax({
 			type: $("#addForm").attr('method'),
 			url : "{% url 'personal-workorder-create' %}",
