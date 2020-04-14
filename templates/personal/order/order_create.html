@@ -136,6 +136,8 @@
                 type: $("#addForm").attr('method'),
                 url: "{% url 'personal-workorder-create' %}",
                 data: data,
+                contentType: false,
+                processData: false,
                 cache: false,
                 beforeSend: function () {
                     this.layerIndex = layer.load(1, {

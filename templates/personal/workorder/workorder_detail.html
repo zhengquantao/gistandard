@@ -41,72 +41,70 @@
         </div>
      {% endif %}
       <div class="row" {% if ban %}hidden{% endif %}>
-        <div class="col-md-3">
-          <div class="box box-primary">
-            <div class="box-header with-border">
-              <h3 class="box-title">客户信息</h3>
-
-              <div class="box-tools">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                </button>
-              </div>
-            </div>
-            <div class="box-body no-padding">
-              <ul class="nav nav-pills nav-stacked">
-                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>  {{ work_order.customer.name }}</a></li>
-                <li><a href="#" title="电话"><i class="fa fa-phone"></i> {{ work_order.customer.phone }}</a></li>
-                <li><a href="#" title="单位"><i class="fa fa-building" ></i> {{ work_order.customer.unit }}</a></li>
-                <li><a href="#" title="地址"><i class="fa fa-map-marker"></i> {{ work_order.customer.address }}</a></li>
-              </ul>
-            </div>
-            <!-- /.box-body -->
-          </div>
-          <!-- /. box -->
-          <div class="box box-primary">
-            <div class="box-header with-border">
-              <h3 class="box-title">申请人信息</h3>
-
-              <div class="box-tools">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                </button>
-              </div>
-            </div>
-            <div class="box-body no-padding">
-              <ul class="nav nav-pills nav-stacked">
-                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>{{ work_order.operation.name }}</a></li>
-                <li><a href="#" title="电话"><i class="fa fa-phone"></i>{{ work_order.operation.mobile }}</a></li>
-                <li><a href="#" title="邮箱"><i class="fa fa-envelope" ></i>{{ work_order.operation.email }}</a></li>
-              </ul>
-            </div>
-            <!-- /.box-body -->
-          </div>
-            {% if work_order.receiver %}
-          <div class="box box-primary">
-            <div class="box-header with-border">
-              <h3 class="box-title">接单人信息</h3>
-
-              <div class="box-tools">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                </button>
-              </div>
-            </div>
-            <div class="box-body no-padding">
-              <ul class="nav nav-pills nav-stacked">
-                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>{{ work_order.receiver.name }}</a></li>
-                <li><a href="#" title="电话"><i class="fa fa-phone"></i>{{ work_order.receiver.mobile }}</a></li>
-                <li><a href="#" title="邮箱"><i class="fa fa-envelope" ></i>{{ work_order.receiver.email }}</a></li>
-              </ul>
-            </div>
-            <!-- /.box-body -->
-          </div>
-            {% endif %}
-        </div>
+{#        <div class="col-md-3">#}
+{#          <div class="box box-primary">#}
+{#            <div class="box-header with-border">#}
+{#              <h3 class="box-title">客户信息</h3>#}
+{#              <div class="box-tools">#}
+{#                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>#}
+{#                </button>#}
+{#              </div>#}
+{#            </div>#}
+{#            <div class="box-body no-padding">#}
+{#              <ul class="nav nav-pills nav-stacked">#}
+{#                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>  {{ work_order.customer.name }}</a></li>#}
+{#                <li><a href="#" title="电话"><i class="fa fa-phone"></i> {{ work_order.customer.phone }}</a></li>#}
+{#                <li><a href="#" title="单位"><i class="fa fa-building" ></i> {{ work_order.customer.unit }}</a></li>#}
+{#                <li><a href="#" title="地址"><i class="fa fa-map-marker"></i> {{ work_order.customer.address }}</a></li>#}
+{#              </ul>#}
+{#            </div>#}
+{#            <!-- /.box-body -->#}
+{#          </div>#}
+{#          <!-- /. box -->#}
+{#          <div class="box box-primary">#}
+{#            <div class="box-header with-border">#}
+{#              <h3 class="box-title">申请人信息</h3>#}
+{##}
+{#              <div class="box-tools">#}
+{#                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>#}
+{#                </button>#}
+{#              </div>#}
+{#            </div>#}
+{#            <div class="box-body no-padding">#}
+{#              <ul class="nav nav-pills nav-stacked">#}
+{#                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>{{ work_order.operation.name }}</a></li>#}
+{#                <li><a href="#" title="电话"><i class="fa fa-phone"></i>{{ work_order.operation.mobile }}</a></li>#}
+{#                <li><a href="#" title="邮箱"><i class="fa fa-envelope" ></i>{{ work_order.operation.email }}</a></li>#}
+{#              </ul>#}
+{#            </div>#}
+{#            <!-- /.box-body -->#}
+{#          </div>#}
+{#            {% if work_order.receiver %}#}
+{#          <div class="box box-primary">#}
+{#            <div class="box-header with-border">#}
+{#              <h3 class="box-title">接单人信息</h3>#}
+{##}
+{#              <div class="box-tools">#}
+{#                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>#}
+{#                </button>#}
+{#              </div>#}
+{#            </div>#}
+{#            <div class="box-body no-padding">#}
+{#              <ul class="nav nav-pills nav-stacked">#}
+{#                  <li><a href="#" title="联系人"><i class="fa fa-user"></i>{{ work_order.receiver.name }}</a></li>#}
+{#                <li><a href="#" title="电话"><i class="fa fa-phone"></i>{{ work_order.receiver.mobile }}</a></li>#}
+{#                <li><a href="#" title="邮箱"><i class="fa fa-envelope" ></i>{{ work_order.receiver.email }}</a></li>#}
+{#              </ul>#}
+{#            </div>#}
+{#            <!-- /.box-body -->#}
+{#          </div>#}
+{#            {% endif %}#}
+{#        </div>#}
         <!-- /.col -->
-       <div class="col-md-9">
+       <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border">
               <h3 class="box-title">工单详情</h3>
-
               <div class="box-tools">
                 <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                 </button>
@@ -135,42 +133,81 @@
                 <div class="table-responsive mailbox-messages">
                   <table class="table" id="tbWorkList"  style="white-space: nowrap;">
                     <tbody>
-                        <tr class="warning">
-                            <td><strong> 订单号</strong></td>
+                        <tr>
+                            <td><strong>订单号</strong></td>
                             <td>{{ work_order.order_number }}</td>
                         </tr>
                          <tr>
                             <td><strong>图片</strong></td>
-                            <td><img src="{{ work_order.img }}" width="80px" height="80px;"></td>
+                            <td><img src="{{ MEDIA_URL }}{{ work_order.img }}" width="80px" height="80px;"></td>
                         </tr>
                         <tr>
                             <td><strong>中文名</strong></td>
                             <td>{{ work_order.product_chinese_name }}</td>
                         </tr>
                         <tr>
+                            <td><strong>母体SKU</strong></td>
+                            <td>{{ work_order.maternal_sku.sku }}</td>
+                        </tr>
+                        <tr>
                             <td><strong>系统SKU</strong></td>
                             <td>{{ work_order.system_sku }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>对照码</strong></td>
+                            <td>{{ work_order.comparison_code }}</td>
                         </tr>
                         <tr>
                             <td><strong>采购数量</strong></td>
                             <td>{{ work_order.purchase_quantity }}</td>
                         </tr>
                         <tr>
-                            <td><strong>成品</strong></td>
-                            <td>{{ work_order.finish_status.finish_status_choices }}</td>
+                            <td><strong>采购链接</strong></td>
+                            <td>{{ work_order.purchase_link }}</td>
                         </tr>
                         <tr>
-                            <td><strong> 工单状态</strong></td>
+                            <td><strong>成品</strong></td>
+                            <td>{{ work_order.get_finish_status_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>订单状态</strong></td>
                             <td>{{ work_order.get_status_display }}</td>
                         </tr>
-                        <tr class="warning">
-                            <td><strong> 申请时间</strong></td>
+                        <tr>
+                            <td><strong>申请时间</strong></td>
                             <td>{{ work_order.add_time }}</td>
                         </tr>
-                        <tr class="warning">
-                            <td><strong> 审批人:</strong></td>
-                            <td>{{ work_order.approver.name }}</td>
-
+                        <tr>
+                            <td><strong>申请人:</strong></td>
+                            <td>{{ work_order.operation.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审批人:</strong></td>
+                            <td>{{ work_order.operation_manager.name|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>采购人:</strong></td>
+                            <td>{{ work_order.purchaser.name|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>打包人:</strong></td>
+                            <td>{{ work_order.warehouse_staff.name|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>运营备注:</strong></td>
+                            <td>{{ work_order.remark|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>运营经理备注:</strong></td>
+                            <td>{{ work_order.remark1|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>采购备注:</strong></td>
+                            <td>{{ work_order.remark2|default_if_none:"" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>仓库备注:</strong></td>
+                            <td>{{ work_order.remark3|default_if_none:"" }}</td>
                         </tr>
                     </tbody>
                   </table>

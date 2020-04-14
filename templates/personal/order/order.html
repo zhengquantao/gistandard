@@ -63,8 +63,8 @@
                     <thead>
                     <tr valign="middle">
                         <th><input type="checkbox" id="checkAll"></th>
-                        <th>系统SKU</th>
                         <th>母体SKU</th>
+                        <th>系统SKU</th>
                         <th>产品中文名</th>
                         <th>对照码</th>
                         <th class="info">采购数量</th>
@@ -120,11 +120,11 @@
 						},
 						columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-								{
-									data : "system_sku",
-								},
                                 {
 									data : "maternal_sku__sku",
+								},
+								{
+									data : "system_sku",
 								},
 								{
 									data : "product_chinese_name",

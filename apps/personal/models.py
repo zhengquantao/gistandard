@@ -80,6 +80,7 @@ class Order(models.Model):
     operation_manager = models.ForeignKey(User, related_name='operation_manager', null=True, on_delete=models.SET_NULL, verbose_name='运营经理')
     purchaser = models.ForeignKey(User, related_name='purchaser', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='采购人员')
     warehouse_staff = models.ForeignKey(User, related_name='warehouse_staff', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='仓储人员')
+    purchase_status = models.IntegerField(verbose_name="采购状态", default=0, null=True, blank=True)
 
 
 class Stock(models.Model):
