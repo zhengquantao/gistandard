@@ -12,7 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
 from .forms import StockCreateForm, StockUpdateForm
-from .models import Stock
+from .models import Stock, Order
 from rbac.models import Role
 
 
@@ -24,9 +24,8 @@ class StockView(LoginRequiredMixin, View):
 
 class StockListView(LoginRequiredMixin, View):
     def get(self, request):
-        fields = ['id', 'system_sku', 'stock_quantity', 'finish_status', 'accessories_name', 'position', 'remark', 'add_time', 'change_time']
-        ret = dict(data=list(Stock.objects.values(*fields).order_by('-add_time')))
-
+        fields = ['id', 'system_sku', 'remaining_stock_quantity']
+        ret = dict(data=list(Order.objects.filter(remaining_stock_quantity__gt=0).values(*fields).order_by('-add_time')))
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
