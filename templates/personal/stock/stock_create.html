@@ -35,6 +35,16 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">母体sku</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="maternal_sku__sku" type="text" value="{{ stock.maternal_sku__sku }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">库存数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="remaining_stock_quantity" readonly type="text" value="{{ stock.remaining_stock_quantity }}"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">配件名称</label>
                         <div class="col-sm-3">
                             <input class="form-control" name="accessories_name" type="text" value="{{ stock.accessories_name }}"/>

@@ -110,7 +110,7 @@
 									data : "system_sku",
 								},
 								{
-									data : "remaining_stock_quantity",
+									data : "stock_quantity",
 								},
 								{
 									data : "id",
@@ -215,11 +215,11 @@ function doDetail(id){
 function doUpdate(id){
 	var div=layer.open({
 		type : 2,
-		title : '修改订单',
+		title : '增加订单',
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '600px' ],
-		content : [ "{% url 'personal-stockorder-update' %}"+'?id='+id],
+		content : [ "{% url 'personal-stock-update' %}"+'?id='+id],
 		end : function() {
 			//oDataTable.ajax.reload();
             window.location.reload();
