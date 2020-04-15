@@ -12,10 +12,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
 from .models import WorkOrder, WorkOrderRecord, Order, MaternalSku
-from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm
+from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, \
+    WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm
 from rbac.models import Role
 
 from utils.toolkit import ToolKit, SendMessage
+
 User = get_user_model()
 
 
@@ -23,6 +25,7 @@ class WorkOrderView(LoginRequiredMixin, View):
     """
         工单视图：根据前端请求的URL 分为个视图：我创建的工单、我审批的工单和我收到的工单====
     """
+
     def get(self, request):
         # user = request.user
         # power = [item.title for item in user.roles.all()]
@@ -46,7 +49,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        fields = ['system_sku', 'maternal_sku__sku','product_chinese_name', 'comparison_code', 'purchase_quantity',
+        fields = ['system_sku', 'maternal_sku__sku', 'product_chinese_name', 'comparison_code', 'purchase_quantity',
                   'finish_status', 'status', 'remark', 'id', "operation__name"]
         filters = dict()
 
@@ -72,13 +75,25 @@ class WorkOrderListView(LoginRequiredMixin, View):
         #     ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_Icrt/':
             filters['operation__id'] = request.user.id
+            filters['status__in'] = ['0', '1', '2']
         if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_app/':
             filters['operation_manager__id'] = request.user.id
             filters['status__in'] = ['0', '2', '3', '4', '5']  # 审批人视图可以看到的工单状态
         if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_rec/':
             filters['purchaser__id'] = request.user.id
-        ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
+        if 'main_url' in request.GET and request.GET['main_url'] == '/personal/workorder_all/':
+            # filters['operation__id'] = request.user.id
+            # filters['operation_manager__id'] = request.user.id
+            # filters['purchaser__id'] = request.user.id
+            # filters['warehouse_staff__id'] = request.user.id
+            # filters['status__in'] = ['0', '2', '3', '4', '5']
+            ret = dict(data=list(Order.objects.filter(
+                Q(operation__id=request.user.id) | Q(operation_manager__id=request.user.id) | Q(
+                    purchaser__id=request.user.id) | Q(warehouse_staff__id=request.user.id), status__in=['0', '1', '2', '3', '4', '5']).values(*fields).order_by(
+                '-add_time')))
+            return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
+        ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by('-add_time')))
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
@@ -122,7 +137,7 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
             # 恢复_mutable原来的属性
             data._mutable = _mutable
 
-        order_form = OrderForm(request.POST,  request.FILES, instance=order)
+        order_form = OrderForm(request.POST, request.FILES, instance=order)
         if order_form.is_valid():
             order_form.save()
             res['status'] = 'success'
@@ -218,6 +233,7 @@ class WorkOrderDeleteView(LoginRequiredMixin, View):
     """
         删除订单====
     """
+
     def post(self, request):
         ret = dict(result=False)
         if 'id' in request.POST and request.POST['id']:
@@ -234,6 +250,7 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
     """
         订单更新=====
     """
+
     def get(self, request):
         status_list = []
         type_list = []
@@ -316,6 +333,7 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
     """
     采购提交
     """
+
     def get(self, request):
         ret = dict()
         work_order = get_object_or_404(Order, pk=request.GET['id'])
@@ -401,6 +419,7 @@ class WorkOrderUploadView(LoginRequiredMixin, View):
     """
     上传配置资料：工单执行记录配置资料上传
     """
+
     def get(self, request):
         ret = dict()
         work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
@@ -409,10 +428,11 @@ class WorkOrderUploadView(LoginRequiredMixin, View):
 
     def post(self, request):
         res = dict(status='fail')
-        #work_order_record = get_object_or_404(WorkOrderRecord, name_id=request.user.id, work_order_id=request.POST['id'])
+        # work_order_record = get_object_or_404(WorkOrderRecord, name_id=request.user.id, work_order_id=request.POST['id'])
         filters = dict(name_id=request.user.id, work_order_id=request.POST['id'])
         work_order_record = WorkOrderRecord.objects.filter(**filters).last()
-        work_order_record_upload_form = WorkOrderRecordUploadForm(request.POST, request.FILES, instance=work_order_record)
+        work_order_record_upload_form = WorkOrderRecordUploadForm(request.POST, request.FILES,
+                                                                  instance=work_order_record)
         if work_order_record_upload_form.is_valid():
             work_order_record_upload_form.save()
             res['status'] = 'success'
@@ -423,6 +443,7 @@ class WorkOrderProjectUploadView(LoginRequiredMixin, View):
     """
     上传项目资料：工单内容项目资料上传
     """
+
     def get(self, request):
         ret = dict()
         work_order = get_object_or_404(WorkOrder, pk=request.GET['id'])
@@ -454,6 +475,7 @@ class WorkOrderDocumentListView(LoginRequiredMixin, View):
     """
     工单文档列表
     """
+
     def get(self, request):
         fields = ['work_order__number', 'work_order__customer__unit', 'name__name', 'add_time', 'file_content']
         ret = dict(data=list(WorkOrderRecord.objects.filter(~Q(file_content='')).values(*fields).order_by('-add_time')))

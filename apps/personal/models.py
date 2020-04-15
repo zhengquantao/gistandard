@@ -58,7 +58,7 @@ class Order(models.Model):
     status_choices = (('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待确认'), ('5', '订单已完成'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
-    img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
+    img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True, default="image/default2.png")
     order_number = models.CharField(max_length=10, verbose_name='订单号')
     status = models.CharField(max_length=10, choices=status_choices, default='0', verbose_name='订单状态')
     product_chinese_name = models.CharField(max_length=500, verbose_name='产品中文名')
