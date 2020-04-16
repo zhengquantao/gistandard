@@ -302,6 +302,12 @@ class WorkOrderSendView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
+        # 判断是否是从库存页面进来  直接给打包～
+        is_store = Order.objects.filter(purchase_status=1, id=request.GET['id'])
+        if is_store:
+            is_store.update(status=4)
+            msg = "提交成功！"
+            return render(request, 'personal/workorder/workorder_ok.html', {"msg": msg})
         ret = dict()
         engineers = User.objects.filter(roles__title='采购')
         work_order = get_object_or_404(Order, pk=request.GET['id'])
@@ -371,7 +377,6 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict(status='fail')
         work_order = get_object_or_404(Order, pk=request.POST['id'])
-        print(work_order.id)
         work_order_record_form = OrderFinallyForm(request.POST, instance=work_order)
         if work_order_record_form.is_valid():
             if request.user.id == work_order.warehouse_staff_id and work_order.status != "5":

@@ -11,24 +11,62 @@
     <div class="box box-danger">
         <form class="form-horizontal" id="addForm" method="post">
             {% csrf_token %}
-            <input type="hidden" name='id' value="{{ stock.id }}"/>
-            <input type="hidden" name='proposer' value="{{ request.user.id }}"/>
+            <input type="hidden" name='operation' value="{{ request.user.id }}"/>
+            <input type="hidden" name="purchase_status" value="1">
             <div class="box-body">
                 <fieldset>
                     <legend>
                         <div class="form-group has-feedback">
-                            <div class="col-sm-8">修改库存</div>
+                            <div class="col-sm-8">创建订单</div>
                         </div>
                     </legend>
                     <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">订单号</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="order_number" readonly="readonly"
+                                   value="{{ new_number }}" type="text"/>
+                        </div>
+                        <label class="col-sm-2 control-label">审批人</label>
+                        <div class="col-sm-3">
+                            <span class="form-control" readonly="readonly">{{ operation_manager.name }}</span>
+                            <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}"
+                                   type="hidden"/>
+                        </div>
+
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="system_sku" type="text" value="{{ stock.system_sku }}"/>
+                            <input class="form-control" name="system_sku" readonly type="text" value="{{ stock.system_sku }}"/>
                         </div>
-                        <label class="col-sm-2 control-label">成品状态</label>
+                        <label class="col-sm-2 control-label">母体SKU</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="maternal_sku" readonly value="{{ stock.maternal_sku.sku }}"
+                                   type="text"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                         <label class="col-sm-2 control-label">库存数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" readonly type="text"
+                                   value="{{ stock.stock_quantity }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">申请发出数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="purchase_quantity" min="1" max="{{ stock.stock_quantity }}" type="number"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">订单状态</label>
+                        <div class="col-sm-3">
+                            <select class="form-control select2" style="width:100%;" name="status">
+                                <option value="1">新建-保存</option>
+                                <option value="2">提交-等待审批</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label">是否成品</label>
                         <div class="col-sm-3">
                             <select class="form-control select2" style="width:100%;" name="finish_status">
-                                <option value="{{ stock.finish_status }}">{{ stock.get_finish_status_display }}</option>
                                 {% for type in type_list %}
                                     <option value="{{ type.item }}">{{ type.value }}</option>
                                 {% endfor %}
@@ -36,25 +74,41 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">配件名称</label>
+                        <label class="col-sm-2 control-label">产品中文名</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="accessories_name" type="text"
-                                   value="{{ stock.accessories_name | default_if_none:"" }}"/>
+                            <input class="form-control" name="product_chinese_name" readonly type="text"
+                                   value="{{ stock.product_chinese_name }}"/>
                         </div>
-                        <label class="col-sm-2 control-label">库存数量</label>
+                        <label class="col-sm-2 control-label">对照码</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="stock_quantity" type="text"
-                                   value="{{ stock.stock_quantity }}"/>
+                            <input class="form-control" name="comparison_code" readonly type="text"
+                                   value="{{ stock.comparison_code }}"/>
+                        </div>
+
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">最近30天销量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="sales_30" type="text"/>
+                        </div>
+                        <label class="col-sm-2 control-label">采购链接</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" readonly name="purchase_link" type="text"
+                                   value="{{ stock.purchase_link }}"/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">位置</label>
+
+                        <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="position" type="text" value="{{ stock.position | default_if_none:"" }}"/>
+                            <input type="hidden" name='img' value="{{ stock.img }}"/>
+                             <img src="{{ stock.img }}" width="80px" height="80px;">
                         </div>
-                        <label class="col-sm-2 control-label">备注</label>
-                        <div class="col-sm-3">
-                            <input class="form-control" name="remark" type="text" value="{{ stock.remark| default_if_none:"" }}"/>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">备注内容</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" name="remark" rows="5"></textarea>
                         </div>
                     </div>
                 </fieldset>
@@ -67,7 +121,6 @@
             </div>
         </form>
     </div>
-
 {% endblock %}
 
 {% block javascripts %}
@@ -79,7 +132,7 @@
             var data = $("#addForm").serialize();
             $.ajax({
                 type: $("#addForm").attr('method'),
-                url: "{% url 'personal-stock-update' %}",
+                url: "{% url 'personal-workorder-create' %}",
                 data: data,
                 cache: false,
                 beforeSend: function () {

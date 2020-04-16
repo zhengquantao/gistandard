@@ -1,0 +1,36 @@
+{% extends 'base-layer.html' %}
+{% load staticfiles %}
+
+{% block css %}
+<link rel="stylesheet" href="{%static 'plugins/select2/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap-datetimepicker.min.css' %}">
+
+{% endblock %}
+{% block main %}
+<div class="box box-danger">
+    <center><h1>{{ msg }}</h1></center>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+<script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
+<script type="text/javascript">
+
+
+	/*点取消刷新新页面*/
+    $("#btnCancel").click(function () {
+	    window.location.reload();
+    })
+
+
+// select2
+  $(function () {
+    //Initialize Select2 Elements
+    $(".select2").select2();
+  });
+</script>
+
+{% endblock %}

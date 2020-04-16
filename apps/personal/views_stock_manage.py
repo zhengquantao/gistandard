@@ -12,8 +12,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
 from .forms import StockCreateForm, StockUpdateForm
-from .models import Stock
+from .models import Stock, Order
 from rbac.models import Role
+from utils.toolkit import ToolKit, SendMessage
+
+User = get_user_model()
 
 
 class StockView(LoginRequiredMixin, View):
@@ -24,13 +27,15 @@ class StockView(LoginRequiredMixin, View):
 
 class StockListView(LoginRequiredMixin, View):
     def get(self, request):
-        fields = ['id', 'system_sku', 'stock_quantity', 'finish_status', 'accessories_name', 'position', 'remark', 'add_time', 'change_time']
-        ret = dict(data=list(Stock.objects.values(*fields).order_by('-add_time')))
-
+        fields = ['id', 'system_sku', 'stock_quantity', 'maternal_sku__sku']
+        ret = dict(data=list(Stock.objects.filter(stock_quantity__gt=0).values(*fields).order_by('-add_time')))
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
 class StockCreateView(LoginRequiredMixin, View):
+    """
+    这个是让仓库人员要录入之前有库存的～～～～
+    """
     def get(self, request):
         type_list = []
         for stock_type in Stock.finish_status_choices:
@@ -81,11 +86,19 @@ class StockUpdateView(LoginRequiredMixin, View):
         type_list = []
         if 'id' in request.GET and request.GET['id']:
             stock = get_object_or_404(Stock, pk=request.GET['id'])
-        for stock_type in stock.finish_status_choices:
+        for stock_type in Stock.finish_status_choices:
             type_dict = dict(item=stock_type[0], value=stock_type[1])
             type_list.append(type_dict)
+        operation_manager = request.user.superior if request.user.superior else request.user
+        try:
+            number = Order.objects.latest('order_number').order_number
+        except Order.DoesNotExist:
+            number = ""
+        new_number = ToolKit.bulidNumber('SX', 9, number)
         ret = {
             'type_list': type_list,
+            'operation_manager': operation_manager,
+            'new_number': new_number,
             'stock': stock
         }
         return render(request, 'personal/stock/stock_update.html', ret)
