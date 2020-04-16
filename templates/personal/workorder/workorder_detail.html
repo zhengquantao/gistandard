@@ -125,6 +125,10 @@
                       onclick="doWorkorderSend({{ work_order.id }})">
                   <i class="fa fa-send-o"> 派发</i>
               </button>
+             <button type="button" class="btn btn-default btn-sm" title="执行确认" id="btnWorkListFinish"
+                  onclick="doWorkorderFinish({{ work_order.id }})">
+              <i class="fa fa-check"> 确认</i>
+              </button>
             </div>
            </div>
 
