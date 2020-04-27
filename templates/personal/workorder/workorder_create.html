@@ -16,11 +16,11 @@
           <fieldset>
             <legend>
             <div class="form-group has-feedback">
-               <div class="col-sm-8">创建工单</div>
+               <div class="col-sm-8">创建订单</div>
             </div>
             </legend>
             <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">工单号</label>
+                <label class="col-sm-2 control-label">订单号</label>
                 <div class="col-sm-3">
                     <input class="form-control" name="number"  readonly="readonly" value="{{ new_number }}{% if work_order %}{{ work_order.number }}{% endif %}" type="text" />
                 </div>
@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">工单类型</label>
+                <label class="col-sm-2 control-label">订单类型</label>
                 <div class="col-sm-3">
                   <select class="form-control select2" style="width:100%;" name="type">
                   <option value="{{ work_order.type }}">{{ work_order.get_type_display }}</option>
@@ -39,7 +39,7 @@
                   {% endfor %}
                  </select>
                  </div>
-                <label class="col-sm-2 control-label">工单状态</label>
+                <label class="col-sm-2 control-label">订单状态</label>
                 <div class="col-sm-3">
                   <select class="form-control select2" style="width:100%;" name="status">
                   <option value="{{ work_order.status }}">{{ work_order.get_status_display }}</option>
@@ -75,7 +75,7 @@
                  </div>
             </div>
             <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">工单内容</label>
+                <label class="col-sm-2 control-label">订单内容</label>
                 <div class="col-sm-8">
                     <textarea class="form-control" name="content" rows="5" >{{ work_order.content }}</textarea>
                 </div>
@@ -115,17 +115,17 @@
 			success : function(msg) {
 			    layer.closeAll('loading');
 				if (msg.status == 'success'){
-					layer.alert('工单保存成功！', {icon: 1},function(index){
+					layer.alert('订单保存成功！', {icon: 1},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}else if (msg.status == 'fail'){
 					layer.alert(msg.work_order_form_errors, {icon: 5});
 				}else if (msg.status == 'submit'){
-					layer.alert('工单申请已提交，邮件发送失败！', {icon: 0},function(index){
+					layer.alert('订单申请已提交，邮件发送失败！', {icon: 0},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}else if (msg.status == 'submit_send'){
-					layer.alert('工单申请已提交,邮件发送成功！', {icon: 1},function(index){
+					layer.alert('订单申请已提交,邮件发送成功！', {icon: 1},function(index){
 					    parent.layer.closeAll(); //关闭所有弹窗
                     });
 				}

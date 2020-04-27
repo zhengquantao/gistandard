@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^personal/workorder_Icrt/$', order.WorkOrderView.as_view(), name="personal-workorder_Icrt"),
     url(r'^personal/workorder_Icrt/list', order.WorkOrderListView.as_view(), name="personal-workorder-list"),
     url(r'^personal/workorder_Icrt/create', order.WorkOrderCreateView.as_view(), name="personal-workorder-create"),
+    url(r'^personal/create/', order.WorkOrderCreateView.as_view(), name="personal-workorder-create"),
     url(r'^personal/workorder_Icrt/detail', order.WorkOrderDetailView.as_view(), name="personal-workorder-detail"),
     url(r'^personal/workorder_Icrt/delete', order.WorkOrderDeleteView.as_view(), name="personal-workorder-delete"),
     url(r'^personal/workorder_Icrt/update', order.WorkOrderUpdateView.as_view(), name="personal-workorder-update"),
@@ -68,7 +69,9 @@ urlpatterns = [
     url(r'^personal/workorder_all/$', order.WorkOrderView.as_view(), name="personal-workorder_all"),
     url(r'^personal/document/$', order.WorkOrderDocumentView.as_view(), name="personal-document"),
     url(r'^personal/document/list', order.WorkOrderDocumentListView.as_view(), name="personal-document-list"),
-
+    url(r'^personal/get_store/$', order.WorkOrderTrueView.as_view(), name="personal-workorder-store"),
+    url(r'^personal/get_store/get/', order.WorkOrderGetView.as_view(), name="personal-workorder-store-list"),
+    url(r'^personal/all_list/', order.WorkOrderAllTrueView.as_view(), name="personal-workorder-store-all-list"),
     # 下单管理
     url(r'^personal/stockorder_Icrt/$', stockorder.StockOrderView.as_view(), name="personal-stockorder_Icrt"),
     url(r'^personal/stockorder_Icrt/list', stockorder.StockOrderListView.as_view(), name="personal-stockorder-list"),
@@ -83,4 +86,9 @@ urlpatterns = [
     url(r'^personal/stockmanage_Icrt/create$', stock.StockCreateView.as_view(), name="personal-stock-create"),
     url(r'^personal/stockmanage_Icrt/delete', stock.StockDeleteView.as_view(), name="personal-stock-delete"),
     url(r'^personal/stockmanage_Icrt/update', stock.StockUpdateView.as_view(), name="personal-stock-update"),
+
+    # 运营经理
+    url(r'^personal/order_Icrt/$', order.WorkOrderView.as_view(), name="personal-workorder_all"),
+    # 采购订单管理
+    url(r'^personal/stockorder_app/$', order.WorkOrderView.as_view(), name="personal-workorder_all"),
 ]

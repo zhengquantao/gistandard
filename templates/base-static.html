@@ -104,6 +104,20 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 <!-- AdminLTE App -->
 <script src="{% static 'dist/js/app.min.js' %}"></script>
+<script>
+    window.onload = function () {
+     $('li').removeClass("active")
+      let path = window.location.pathname;
+      let dom = $("a");
+      for(let i=0; i<dom.length;i++){
+            if (dom.eq(i).attr("href")==path){
+                dom.eq(i).parent().addClass("active");
+                dom.eq(i).parents(".treeview").addClass("active");
+                break;
+            }
+    }
+    }
+</script>
 
 {% block javascripts %}{% endblock %}
 

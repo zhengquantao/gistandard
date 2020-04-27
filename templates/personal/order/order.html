@@ -27,7 +27,7 @@
                 <div class="btn-group pull-left">&nbsp</div>
                 <div class="btn-group pull-left">
                     <button type="button" id="btnCreate" class="btn btn-primary ">
-                        <i class="glyphicon glyphicon-plus"></i>新增
+                        <i class="glyphicon glyphicon-plus"></i>新建订单
                     </button>
 
                 </div>
@@ -94,6 +94,8 @@
   <script src="{% static 'plugins/datatables/moment.min.js' %}"></script>
   <script src="{% static 'js/plugins/layer/layer.js' %}"></script>
   <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-flash-1.6.1/b-html5-1.6.1/b-print-1.6.1/datatables.min.js"></script>
+
   <!-- iCheck 1.0.1 -->
   <script type="text/javascript">
 	$(function() {
@@ -118,7 +120,7 @@
 									d.order_status=$("#order_status").val();
 								}
 						},
-						columns : [
+						    columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
                                 {
 									data : "maternal_sku__sku",
@@ -163,10 +165,13 @@
                                             var ret="<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
 											return ret;
                                         }if(data==4) {
-                                            var ret="<button class='btn btn-primary btn-xs'>已采购-等待确认</button>";
+                                            var ret="<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
 											return ret;
                                         }if(data==5) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>工单已完成</button>";
+                                            var ret="<button class='btn btn-default btn-xs bg-gray'>订单已完成</button>";
+											return ret;
+                                        }if(data==6) {
+                                            var ret="<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
 											return ret;
                                         }
 									}
@@ -191,11 +196,28 @@
 									}
 								},
                         ],
+                            dom: 'Bfrtip',
+                            buttons: [
+                                {
+                                    extend: 'excelHtml5',
+                                    autoFilter: true,
+                                    sheetName: 'Exported data',
+                                    text: '<button class="btn btn-primary">导出Excel</button>'
+                                },
+                                {
+                                    extend: 'print',
+                                    sheetName: 'Exported data',
+                                    text: '<button class="btn btn-info">打印</button>',
+                                    autoPrint: true,
+                                    exportOptions: {
+                                        columns: ':visible',
+                                    },
+                                }
+                            ]
 						}));
 		return oTable;
 	}
-
-	    $("#btnWorkorderSearch").click(function(){
+      $("#btnWorkorderSearch").click(function(){
             oDataTable.ajax.reload();
         });
 
@@ -210,11 +232,10 @@
         }
     });
 
-
 	$("#btnCreate").click(function() {
 		var div=layer.open({
 			type : 2,
-			title : '新增订单',
+			title : '创建订单',
 			shadeClose : false,
 			maxmin : true,
 			area : [ '800px', '600px' ],

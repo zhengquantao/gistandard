@@ -17,6 +17,7 @@
                     <legend>
                         <div class="form-group has-feedback">
                             <div class="col-sm-8">创建订单</div>
+                            <div class="col-sm-1 col-sm-offset-3 text-right "><button type="button" id="close-html" title="关闭">X</button></div>
                         </div>
                     </legend>
                     <div class="form-group has-feedback">
@@ -31,7 +32,6 @@
                             <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}"
                                    type="hidden"/>
                         </div>
-
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
@@ -44,7 +44,6 @@
                                    type="text"/>
                         </div>
                     </div>
-
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">订单状态</label>
                         <div class="col-sm-3">
@@ -73,7 +72,6 @@
                             <input class="form-control" name="comparison_code" type="text"
                                    value="{{ order.comparison_code }}"/>
                         </div>
-
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">采购数量</label>
@@ -92,6 +90,16 @@
                         <div class="col-sm-3">
                             <input class="form-control" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
                         </div>
+                        <label class="col-sm-2 control-label">采购人</label>
+                        <div class="col-sm-3">
+                            <select class="form-control select2" style="width:100%;" name="purchaser">
+                                {% for item in purchase_list %}
+                                    <option value="{{ item.id }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
                             <label for="upload" class="control-label">
@@ -196,6 +204,9 @@
             //Initialize Select2 Elements
             $(".select2").select2();
         });
+        $("#close-html").click(function () {
+            window.history.back()
+        })
     </script>
 
 {% endblock %}

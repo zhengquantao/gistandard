@@ -41,7 +41,7 @@
             <div class="box-header">
               <form class="form-inline" id="queryForm">
                 <div class="form-group searchArea margin-r-5 margin-top-5">
-                    <label>订单号：</label>
+                    <label>SKU号：</label>
                     <input type="text" name="number" class="form-control inputText" id="number" placeholder="请输入订单号">
                 </div>
                <div class="form-group searchArea margin-r-5 margin-top-5">
@@ -63,15 +63,13 @@
                     <thead>
                     <tr valign="middle">
                         <th><input type="checkbox" id="checkAll"></th>
-                        <th>图片</th>
                         <th>系统SKU</th>
                         <th>产品中文名</th>
-                        <th class="info">需要数量</th>
-                        <th>采购数量</th>
-                        <th>缺少数量</th>
-                        <th>链接</th>
-                        <th>订单细节</th>
+                        <th class="info">采购数量</th>
+                        <th>可用数量</th>
+                        <th>缺或坏数量</th>
                         <th>订单状态</th>
+                        <th>存放位置</th>
                         <th>备注</th>
                         <th>操作</th>
                     </tr>
@@ -115,19 +113,14 @@
 							ajax : {
 								"url":"{% url 'personal-workorder-list' %}",
 								"data":function ( d ) {
-								    d.main_url="{{ menu.url }}";
+								    d.main_url="/personal/workorder_all/";
 									d.system_sku=$("#system_sku").val();
 									d.order_status=$("#order_status").val();
+									d.other="1";
 								}
 						},
 						columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-                                {
-									data : "img",
-                                    render:function (data, type, row, meta) {
-                                        return "<img src='/media/"+data+"' height='60' width='60' class='img-thumbnail'>"
-                                    }
-								},
 								{
 									data : "system_sku",
 								},
@@ -139,36 +132,19 @@
                                     render : function(data, type, row, meta) {
 										return "<span class='all'>"+data+"</span>"
 									}
-								},{
+								},
+                                {
 							        data : "order_quantity",
                                     render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" class='order_quantity' value='${row.All_sum - row.lack}'>`
-									}
-                                },{
-                                    data : "lack",
-                                    render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='lack' value='${data}'>`
+										return "<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='order_quantity' value='"+data+"'>"
 									}
                                 },
-
                                 {
-                                    data: "purchase_link",
+                                    data : "lack_warehouse_staff",
                                     render : function(data, type, row, meta) {
-										return "<a href='"+data+"' target='_blank'>下单</a>"
+										return "<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='lack_warehouse_staff' value='"+data+"'>"
 									}
                                 },
-                            {
-									data : "child",
-                                    render : function(data, type, row, meta) {
-                                        // "system_sku",  "product_chinese_name", "operation__username", "purchase_quantity", "operation_manager__username"
-                                        let dataList = new Array()
-                                        for(let i in data){
-                                            let itemOrder = `<div style="border: 1px solid #eee;font-size:5px;">sku:${data[i].system_sku};单量:<span style="font-size: 8px">${data[i].purchase_quantity}</span>;申请人:${data[i].operation__username || data[i].operation_manager__username}</div>`;
-                                            dataList.push(itemOrder)
-                                        }
-                                        return dataList.join("");
-									}
-								},
                                 {
 									data : "status",
                                     render : function(data, type, row, meta) {
@@ -196,28 +172,40 @@
                                         }
 									}
 								},
-                            {
-                                data: "remark2",
-                                render:function(data, type, row, meta){
-                                    if(data){
-                                        return "<textarea type='text' class='remark2' value='"+data+"'></textarea>"
-                                    }else{
-                                        return "<textarea type='text' class='remark2'></textarea>"
-                                    }
+                                {
+                                    data: "position",
+                                    render:function(data, type, row, meta){
+                                        if(data){
+                                            return "<textarea type='text' class='position'>"+data+"</textarea>"
+                                        }else{
+                                            return "<textarea type='text' class='position'></textarea>"
+                                        }
 
+                                    }
+                                },
+                                {
+                                    data: "remark4",
+                                    render:function(data, type, row, meta){
+                                        console.log(data)
+                                        if(data){
+                                            return "<textarea type='text' class='remark2'>"+data+"</textarea>"
+                                        }else{
+                                            return "<textarea type='text' class='remark2'></textarea>"
+                                        }
+
+                                    }
+                                },
+                                {
+                                    data : "system_sku",
+                                    bSortable : "false",
+                                    render : function(data, type, row, meta) {
+                                        var ret="<button title='质检完毕' class='commited' ids='"+row.id+"' word='"
+                                        + data + "'><i class='glyphicon glyphicon-list-alt'></i></button>";
+                                        //ret=ret+"<button title='删除' onclick='doDelete("
+                                        //   + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
+                                        return ret;
+                                    }
                                 }
-                            },
-                            {
-                                data : "system_sku",
-                                bSortable : "false",
-                                render : function(data, type, row, meta) {
-                                    var ret="<button title='确认采购' class='commited' word='"
-                                    + data + "'><i class='glyphicon glyphicon-list-alt'></i></button>";
-                                     ret=ret+"<button title='删除' onclick='doDelete("
-                                        + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-                                    return ret;
-                                }
-                            }
                             ],
 						}));
 		    return oTable;
@@ -298,31 +286,24 @@
     //点击提交
     $("tbody").on("click", ".commited",function () {
         let system_sku = $(this).attr("word");
+        //let system_sku = $(this).attr("ids");
         let order_quantity = $(this).parent().parent().find(".order_quantity").val();
-        let lack = $(this).parent().parent().find(".lack").val();
+        let lack = $(this).parent().parent().find(".lack_warehouse_staff").val();
         let remark2 = $(this).parent().parent().find(".remark2").val();
-        if(order_quantity.length>0) {
-            $.post("/personal/workorder_rec/execute", {
-                "system_sku": system_sku,
-                "order_quantity": order_quantity,
-                "lack": lack,
-                "remakr2": remark2,
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            }, function (data) {
-                if (data.code) {
-                    window.location.reload()
-                }
-            })
-
-        }else{
-            showAlert("采购数量不能为空呀！");
-        }
+        let position = $(this).parent().parent().find(".position").val();
+      $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remakr2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
+            if (data.code === 1000){
+                window.location.reload()
+            }else{
+                alert(data.data);
+            }
+        })
     });
 
     $("tbody").on("blur", ".order_quantity", function () {
         let all = $(this).parent().parent().find(".all").text();
         let order_quantity = $(this).parent().parent().find(".order_quantity");
-        let lack = $(this).parent().parent().find(".lack");
+        let lack = $(this).parent().parent().find(".lack_warehouse_staff");
         lack.val(all-order_quantity.val())
         //order_quantity.val(all-lack.val())
     });

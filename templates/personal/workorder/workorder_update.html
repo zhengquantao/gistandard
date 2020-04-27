@@ -99,6 +99,17 @@
                             <input class="form-control" name="sales_30" type="text"
                                    value="{{ order.sales_30|default_if_none:"" }}"/>
                         </div>
+
+                        <label class="col-sm-2 control-label">采购人</label>
+                        <div class="col-sm-3">
+                            <select class="form-control select2" style="width:100%;" name="purchaser">
+                                {% for item in purchase_list %}
+                                    <option value="{{ item.id }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
                                 <label for="upload" class="control-label">

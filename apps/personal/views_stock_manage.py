@@ -28,7 +28,12 @@ class StockView(LoginRequiredMixin, View):
 class StockListView(LoginRequiredMixin, View):
     def get(self, request):
         fields = ['id', 'system_sku', 'stock_quantity', 'maternal_sku__sku']
-        ret = dict(data=list(Stock.objects.filter(stock_quantity__gt=0).values(*fields).order_by('-add_time')))
+        filters = dict()
+        sku = request.GET.get('number')
+        if sku:
+            filters['system_sku__icontains'] = sku
+        ret = dict(data=list(Stock.objects.filter(stock_quantity__gt=0, **filters).values(*fields).order_by('-add_time')))
+        print(ret, "===============")
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
@@ -37,14 +42,13 @@ class StockCreateView(LoginRequiredMixin, View):
     这个是让仓库人员要录入之前有库存的～～～～
     """
     def get(self, request):
+        ret = Menu.getMenuByRequestUrl(url=request.path_info)
         type_list = []
         for stock_type in Stock.finish_status_choices:
             type_dict = dict(item=stock_type[0], value=stock_type[1])
             type_list.append(type_dict)
 
-        ret = {
-            'type_list': type_list
-        }
+        ret['type_list'] = type_list
         return render(request, 'personal/stock/stock_create.html', ret)
 
     def post(self, request):

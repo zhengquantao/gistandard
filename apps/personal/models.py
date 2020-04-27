@@ -55,7 +55,7 @@ class MaternalSku(models.Model):
 
 
 class Order(models.Model):
-    status_choices = (('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待确认'), ('5', '订单已完成'))
+    status_choices = (('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '问题订单'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
@@ -68,20 +68,25 @@ class Order(models.Model):
     remaining_stock_quantity = models.IntegerField(verbose_name='剩余库存数量', null=True, blank=True)
     issued_quantity = models.IntegerField(verbose_name='已发出数量', null=True, blank=True)
     sales_30 = models.CharField(max_length=50, verbose_name='最近30天销量', null=True)
-    order_quantity = models.IntegerField(verbose_name='下单数量', null=True, blank=True)
-    purchase_quantity = models.IntegerField(verbose_name='采购数量', null=True)
+    order_quantity = models.IntegerField(verbose_name='采购下单数量', null=True, blank=True)
+    purchase_quantity = models.IntegerField(verbose_name='运营采购数量', blank=True, null=True)
     add_time = models.DateField(default=datetime.datetime.today, verbose_name='创建时间')
     remark = models.CharField(max_length=500, verbose_name="运营备注", null=True, blank=True)
     remark1 = models.CharField(max_length=500, verbose_name="运营经理备注", null=True, blank=True)
     remark2 = models.CharField(max_length=500, verbose_name="采购备注", null=True, blank=True)
     remark3 = models.CharField(max_length=500, verbose_name="仓库备注", null=True, blank=True)
+    remark4 = models.CharField(max_length=500, verbose_name="质检备注", null=True, blank=True)
     maternal_sku = models.ForeignKey(MaternalSku, related_name="maternal_sku", blank=True, null=True, on_delete=models.SET_NULL, verbose_name='母体SKU')
     operation = models.ForeignKey(User, related_name='operation', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='运营')
     operation_manager = models.ForeignKey(User, related_name='operation_manager', null=True, on_delete=models.SET_NULL, verbose_name='运营经理')
     purchaser = models.ForeignKey(User, related_name='purchaser', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='采购人员')
     warehouse_staff = models.ForeignKey(User, related_name='warehouse_staff', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='仓储人员')
     purchase_status = models.IntegerField(verbose_name="采购状态", default=0, null=True, blank=True)
-    position = models.CharField(max_length=500, verbose_name='位置', blank=True, null=True, default="")
+    position = models.CharField(max_length=500, verbose_name='质检位置', blank=True, null=True, default="")
+    lack = models.IntegerField(verbose_name="采购缺少数量", null=True, blank=True, default=0)
+    lack_warehouse_staff = models.IntegerField(verbose_name='质检缺或坏数量', null=True, blank=True, default=0)
+    store_choices = (('0', '未缺货'), ('1', '缺货'))
+    is_store = models.CharField(max_length=5, choices=store_choices, default='0', verbose_name='是否入库')
 
 
 class Stock(models.Model):

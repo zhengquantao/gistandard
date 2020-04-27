@@ -104,7 +104,7 @@
        <div class="col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border">
-              <h3 class="box-title">工单详情</h3>
+              <h3 class="box-title">订单详情</h3>
               <div class="box-tools">
                 <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                 </button>
@@ -124,6 +124,10 @@
               <button type="button" class="btn btn-success btn-sm" title="派发工单" id="btnWorkListSend"
                       onclick="doWorkorderSend({{ work_order.id }})">
                   <i class="fa fa-send-o"> 派发</i>
+              </button>
+                <button type="button" class="btn btn-primary btn-sm" title="确认采购" id="btnWorkListExecute"
+                      onclick="doWorkorderExecute({{ work_order.id }})">
+                  <i class="fa fa-shopping-cart" aria-hidden="true"> 采购</i>
               </button>
              <button type="button" class="btn btn-default btn-sm" title="执行确认" id="btnWorkListFinish"
                   onclick="doWorkorderFinish({{ work_order.id }})">
@@ -167,7 +171,7 @@
                         </tr>
                         <tr>
                             <td><strong>采购链接</strong></td>
-                            <td>{{ work_order.purchase_link }}</td>
+                            <td><a target="_blank" href="{{ work_order.purchase_link }}">{{ work_order.purchase_link }}</a></td>
                         </tr>
                         <tr>
                             <td><strong>成品</strong></td>
@@ -401,7 +405,7 @@
     function doEquipmentUpdate(id){
 	var div=layer.open({
 		type : 2,
-		title : '编辑-详情',
+		title : '修改订单',
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '500px' ],
@@ -418,7 +422,7 @@
 function doWorkorderUpdate(id){
 	var div=layer.open({
 		type : 2,
-		title : '编辑-详情',
+		title : '修改订单',
 		shadeClose : false,
     	maxmin : true,
 		area : [ '800px', '500px' ],
@@ -435,7 +439,7 @@ function doWorkorderUpdate(id){
 function doWorkorderSend(id){
 	    layer.open({
 		type : 2,
-		title : '工单派发',
+		title : '订单派发',
 		shadeClose : false,
         maxmin : true,
 		area : [ '770px', '500px' ],
@@ -450,7 +454,7 @@ function doWorkorderSend(id){
 function doWorkorderExecute(id){
 	    layer.open({
 		type : 2,
-		title : '工单执行',
+		title : '订单执行',
 		shadeClose : false,
         maxmin : true,
 		area : [ '770px', '400px' ],
@@ -465,7 +469,7 @@ function doWorkorderExecute(id){
 function doWorkorderFinish(id){
 	    layer.open({
 		type : 2,
-		title : '工单确认',
+		title : '订单确认',
 		shadeClose : false,
         maxmin : true,
 		area : [ '770px', '400px' ],
@@ -480,7 +484,7 @@ function doWorkorderFinish(id){
 function doWorkOrderReturn(id){
 	    layer.open({
 		type : 2,
-		title : '工单退回',
+		title : '订单退回',
 		shadeClose : false,
         maxmin : true,
 		area : [ '770px', '300px' ],

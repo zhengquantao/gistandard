@@ -17,20 +17,20 @@
 		<div class="box-body">
           <fieldset>
             <legend>
-              <h4>工单派发</h4>
+              <h4>订单派发</h4>
             </legend>
 
-            <div class="form-group has-feedback">
-                <label class="col-sm-2 control-label">接单人</label>
-                <div class="col-sm-3">
-                  <select class="form-control select2" style="width:100%;" name="purchaser">
-                  <option value=""></option>
-                  {% for engineer in engineers %}
-                  <option value="{{ engineer.id }}">{{ engineer.name }}</option>
-                  {% endfor %}
-                 </select>
-                 </div>
-            </div>
+{#            <div class="form-group has-feedback">#}
+{#                <label class="col-sm-2 control-label">接单人</label>#}
+{#                <div class="col-sm-3">#}
+{#                  <select class="form-control select2" style="width:100%;" name="purchaser">#}
+{#                  <option value=""></option>#}
+{#                  {% for engineer in engineers %}#}
+{#                  <option value="{{ engineer.id }}">{{ engineer.name }}</option>#}
+{#                  {% endfor %}#}
+{#                 </select>#}
+{#                 </div>#}
+{#            </div>#}
             <div class="form-group has-feedback">
                 <label class="col-sm-2 control-label">派发说明</label>
                 <div class="col-sm-8">
@@ -43,7 +43,7 @@
 		<div class="box-footer ">
 			<div class="row span7 text-center ">
               <button type="button" id="btnCancel" class="btn btn-default margin-right " >重置</button>
-              <button type="button" id="btnSave" class="btn btn-info margin-right " >保存</button>
+              <button type="button" id="btnSave" class="btn btn-info margin-right " >派发</button>
 			</div>
 		</div>
 	</form>
