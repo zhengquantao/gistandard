@@ -48,12 +48,20 @@
 
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">订单状态</label>
+{#                        <label class="col-sm-2 control-label">订单状态</label>#}
+{#                        <div class="col-sm-3">#}
+{#                            <select class="form-control select2" style="width:100%;" name="status">#}
+{#                                <option value="{{ order.status }}">{{ order.get_status_display }}</option>#}
+{#                                <option value="1">新建-保存</option>#}
+{#                                <option value="2">提交-等待审批</option>#}
+{#                            </select>#}
+{#                        </div>#}
+                    <label class="col-sm-2 control-label">采购人</label>
                         <div class="col-sm-3">
-                            <select class="form-control select2" style="width:100%;" name="status">
-                                <option value="{{ order.status }}">{{ order.get_status_display }}</option>
-                                <option value="1">新建-保存</option>
-                                <option value="2">提交-等待审批</option>
+                            <select class="form-control select2" style="width:100%;" name="purchaser">
+                                {% for item in purchase_list %}
+                                    <option value="{{ item.id }}">{{ item.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
 
@@ -130,7 +138,8 @@
             <div class="box-footer ">
                 <div class="row span7 text-center ">
                     <button type="button" id="btnCancel" class="btn btn-default margin-right ">重置</button>
-                    <button type="button" id="btnSave" class="btn btn-info margin-right ">保存</button>
+                    <button type="button" id="btnSave" class="btn btn-primary margin-right ">保存</button>
+                    <button type="button" id="btnSubmit" class="btn btn-info margin-right ">提交</button>
                 </div>
             </div>
         </form>
@@ -151,6 +160,7 @@
         });
         $("#btnSave").click(function () {
             var data = new FormData($("#addForm")[0]);
+            data.set("status", "1");
             $.ajax({
                 type: $("#addForm").attr('method'),
                 url: "{% url 'personal-workorder-update' %}",
@@ -184,13 +194,46 @@
                 }
             });
         });
-
+        $("#btnSubmit").click(function () {
+            var data = new FormData($("#addForm")[0]);
+            data.set("status", "2");
+            $.ajax({
+                type: $("#addForm").attr('method'),
+                url: "{% url 'personal-workorder-update' %}",
+                data: data,
+                contentType: false,
+                processData: false,
+                cache: false,
+                beforeSend: function () {
+                    this.layerIndex = layer.load(1, {
+                        shade: [0.1, '#fff'] //0.1透明度的白色背景
+                    });
+                },
+                success: function (msg) {
+                    layer.closeAll('loading');
+                    if (msg.status == 'success') {
+                        layer.alert('订单保存成功！', {icon: 1}, function (index) {
+                            parent.layer.closeAll();
+                        });
+                    } else if (msg.status == 'fail') {
+                        layer.alert(msg.work_order_form_errors, {icon: 5});
+                    } else if (msg.status == 'submit') {
+                        layer.alert('订单申请已提交, 请等待审批！', {icon: 0}, function (index) {
+                            parent.layer.closeAll();
+                        });
+                    } else if (msg.status == 'ban') {
+                        layer.alert('当前状态禁止修改！', {icon: 4}, function (index) {
+                            parent.layer.closeAll();
+                        });
+                    }
+                    return;
+                }
+            });
+        });
         /*点取消刷新新页面*/
         $("#btnCancel").click(function () {
             window.location.reload();
-
-        })
-
+        });
         /*通过按钮关闭弹layer弹出的页面窗口*/
         $(document).ready(function () {
             $("#btnCancel").click(function () {

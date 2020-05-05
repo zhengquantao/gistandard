@@ -106,7 +106,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="{% static 'dist/js/app.min.js' %}"></script>
 <script>
     window.onload = function () {
-     $('li').removeClass("active")
+        $("#PERSONAL-WORKORDER-ALL").insertAfter("#PERSONAL-WORKORDER-STORE-LIST")
+     $('li').removeClass("active");
       let path = window.location.pathname;
       let dom = $("a");
       for(let i=0; i<dom.length;i++){

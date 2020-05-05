@@ -125,7 +125,7 @@
            <form class="form-horizontal" id="WorkListDetailsForm" action="" method="post">
                 {% csrf_token %}
                 <div class="table-responsive mailbox-messages">
-                  <table class="table" id="tbWorkList"  style="white-space: nowrap;">
+                  <table class="table" id="tbWorkList">
                     <tbody>
                         <tr class="warning">
                             <td><strong> 订单号</strong></td>
@@ -279,7 +279,6 @@
 	    $('#{{ menu.code }}').addClass('active');
 
 	});
-
     var oDataTable=null;
     $(function() {
         oDataTable = initTable();
@@ -366,82 +365,82 @@
     layer.full(div)
 }
 
-function doWorkorderUpdate(id){
-	var div=layer.open({
-		type : 2,
-		title : '编辑-详情',
-		shadeClose : false,
-    	maxmin : true,
-		area : [ '800px', '500px' ],
-		content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
-		end : function() {
-			//oDataTable.ajax.reload();
-            window.location.reload();
+    function doWorkorderUpdate(id){
+        var div=layer.open({
+            type : 2,
+            title : '编辑-详情',
+            shadeClose : false,
+            maxmin : true,
+            area : [ '800px', '500px' ],
+            content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
+            end : function() {
+                //oDataTable.ajax.reload();
+                window.location.reload();
 
-		}
-	});
-    layer.full(div)
-}
+            }
+        });
+        layer.full(div)
+    }
 
-function doWorkorderSend(id){
-	    layer.open({
-		type : 2,
-		title : '工单派发',
-		shadeClose : false,
-        maxmin : true,
-		area : [ '770px', '500px' ],
-		content : [ "{% url 'personal-workorder-send' %}"+'?id='+id],
-		end : function() {
-            window.location.reload();
+    function doWorkorderSend(id){
+            layer.open({
+            type : 2,
+            title : '工单派发',
+            shadeClose : false,
+            maxmin : true,
+            area : [ '770px', '500px' ],
+            content : [ "{% url 'personal-workorder-send' %}"+'?id='+id],
+            end : function() {
+                window.location.reload();
 
-		}
-	});
-}
+            }
+        });
+    }
 
-function doWorkorderExecute(id){
-	    layer.open({
-		type : 2,
-		title : '工单执行',
-		shadeClose : false,
-        maxmin : true,
-		area : [ '770px', '400px' ],
-		content : [ "{% url 'personal-workorder-execute' %}"+'?id='+id],
-		end : function() {
-            window.location.reload();
+    function doWorkorderExecute(id){
+            layer.open({
+            type : 2,
+            title : '工单执行',
+            shadeClose : false,
+            maxmin : true,
+            area : [ '770px', '400px' ],
+            content : [ "{% url 'personal-workorder-execute' %}"+'?id='+id],
+            end : function() {
+                window.location.reload();
 
-		}
-	});
-}
+            }
+        });
+    }
 
-function doWorkorderFinish(id){
-	    layer.open({
-		type : 2,
-		title : '工单确认',
-		shadeClose : false,
-        maxmin : true,
-		area : [ '770px', '400px' ],
-		content : [ "{% url 'personal-workorder-finish' %}"+'?id='+id],
-		end : function() {
-            window.location.reload();
+    function doWorkorderFinish(id){
+            layer.open({
+            type : 2,
+            title : '工单确认',
+            shadeClose : false,
+            maxmin : true,
+            area : [ '770px', '400px' ],
+            content : [ "{% url 'personal-workorder-finish' %}"+'?id='+id],
+            end : function() {
+                window.location.reload();
 
-		}
-	});
-}
+            }
+        });
+    }
 
-function doWorkOrderReturn(id){
-	    layer.open({
-		type : 2,
-		title : '工单退回',
-		shadeClose : false,
-        maxmin : true,
-		area : [ '770px', '300px' ],
-		content : [ "{% url 'personal-workorder-return' %}"+'?id='+id],
-		end : function() {
-            window.location.reload();
+    function doWorkOrderReturn(id){
+            layer.open({
+            type : 2,
+            title : '工单退回',
+            shadeClose : false,
+            maxmin : true,
+            area : [ '770px', '300px' ],
+            content : [ "{% url 'personal-workorder-return' %}"+'?id='+id],
+            end : function() {
+                window.location.reload();
 
-		}
-	});
-}
+            }
+        });
+    }
   </script>
 
 {% endblock %}

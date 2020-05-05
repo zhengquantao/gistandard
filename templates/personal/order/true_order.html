@@ -24,21 +24,6 @@
      <div id="devlist">
         <div class="box box-primary" id="liebiao">
             <div class="box-header">
-                <div class="btn-group pull-left">&nbsp</div>
-                <div class="btn-group pull-left">
-                    <button type="button" id="btnCreate" class="btn btn-primary ">
-                        <i class="glyphicon glyphicon-plus"></i>新增
-                    </button>
-
-                </div>
-                <div class="btn-group pull-left">&nbsp</div>
-                <div class="btn-group pull-left">
-                    <button type="button" id="btnRefresh" class="btn btn-default">
-                        <i class="glyphicon glyphicon-refresh"></i>刷新
-                    </button>
-                </div>
-            </div>
-            <div class="box-header">
               <form class="form-inline" id="queryForm">
                 <div class="form-group searchArea margin-r-5 margin-top-5">
                     <label>SKU号：</label>
@@ -63,8 +48,10 @@
                     <thead>
                     <tr valign="middle">
                         <th><input type="checkbox" id="checkAll"></th>
+                        <th>图片</th>
                         <th>系统SKU</th>
                         <th>产品中文名</th>
+                        <th>采购时间</th>
                         <th class="info">采购数量</th>
                         <th>可用数量</th>
                         <th>缺或坏数量</th>
@@ -121,22 +108,38 @@
 						},
 						columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
+                            {
+                                data:"child",
+                                render: function(data, type, row, meta){
+                                    return `<img src="{{ MEDIA_URL }}${data[0].img}" class="img-thumbnail" width=80 height=80>`
+                                }
+                            },
 								{
 									data : "system_sku",
 								},
 								{
-									data : "product_chinese_name",
-								},
+                                    data : "child",
+                                    render: function(data, type, row, meta){
+                                        return `${data[0].product_chinese_name}`
+                                    }
+                                },
+                              {
+                                  data: "time3",
+                                  render: function(data, type, row, meta){
+                                      return `${data.replace("T", "&nbsp;&nbsp;").replace(/:\d\d\.\d*/, "")}`
+                                  }
+                                },
                                 {
 									data : "All_sum",
                                     render : function(data, type, row, meta) {
 										return "<span class='all'>"+data+"</span>"
 									}
 								},
+
                                 {
 							        data : "order_quantity",
                                     render : function(data, type, row, meta) {
-										return "<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='order_quantity' value='"+data+"'>"
+										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='order_quantity' value='${row.All_sum - row.lack_warehouse_staff||0}'>`
 									}
                                 },
                                 {
@@ -164,10 +167,13 @@
                                             var ret="<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
 											return ret;
                                         }if(data==5) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>订单已完成</button>";
+                                            var ret="<button class='btn btn-info btn-xs'>订单已完成</button>";
 											return ret;
                                         }if(data==6) {
                                             var ret="<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
+											return ret;
+                                        }if(data==7) {
+                                            var ret="<button class='btn btn-danger btn-xs'>问题订单</button>";
 											return ret;
                                         }
 									}
@@ -176,7 +182,7 @@
                                     data: "position",
                                     render:function(data, type, row, meta){
                                         if(data){
-                                            return "<textarea type='text' class='position'>"+data+"</textarea>"
+                                            return `<textarea type='text' class='position'>${row.child[0].position}</textarea>`
                                         }else{
                                             return "<textarea type='text' class='position'></textarea>"
                                         }
@@ -186,9 +192,8 @@
                                 {
                                     data: "remark4",
                                     render:function(data, type, row, meta){
-                                        console.log(data)
                                         if(data){
-                                            return "<textarea type='text' class='remark2'>"+data+"</textarea>"
+                                            return `<textarea type='text' class='remark2'>${row.child[0].remark2}</textarea>`
                                         }else{
                                             return "<textarea type='text' class='remark2'></textarea>"
                                         }
@@ -200,7 +205,7 @@
                                     bSortable : "false",
                                     render : function(data, type, row, meta) {
                                         var ret="<button title='质检完毕' class='commited' ids='"+row.id+"' word='"
-                                        + data + "'><i class='glyphicon glyphicon-list-alt'></i></button>";
+                                        + data + "'><i class='fa fa-check'></i></button>";
                                         //ret=ret+"<button title='删除' onclick='doDelete("
                                         //   + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
                                         return ret;
@@ -287,15 +292,16 @@
     $("tbody").on("click", ".commited",function () {
         let system_sku = $(this).attr("word");
         //let system_sku = $(this).attr("ids");
-        let order_quantity = $(this).parent().parent().find(".order_quantity").val();
+        let order_quantity = $(this).parent().parent().find(".all").text();
         let lack = $(this).parent().parent().find(".lack_warehouse_staff").val();
         let remark2 = $(this).parent().parent().find(".remark2").val();
         let position = $(this).parent().parent().find(".position").val();
       $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remakr2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
             if (data.code === 1000){
-                window.location.reload()
+                layer.alert("操作成功",{icon:1});
+                oDataTable.ajax.reload();
             }else{
-                alert(data.data);
+                layer.alert("当前状态,操作失败",{icon:2});
             }
         })
     });

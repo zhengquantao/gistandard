@@ -113,26 +113,30 @@
          <div class="box-body no-padding">
            <div class="mailbox-controls margin-b-10">
             <div class="btn-group margin-l-5">
+                <button type="button" class="btn btn-default btn-sm" title="返回列表"
+                      onclick="doReturn()">
+                  <i class="fa fa-undo"> 返回</i>
+              </button>
               <button type="button" class="btn btn-danger btn-sm" title="退回工单" id="btnWorkListReturn"
                       onclick="doWorkOrderReturn({{ work_order.id }})">
-                  <i class="fa fa-undo"> 退回</i>
+                  <i class="fa fa-remove"> 退回</i>
               </button>
               <button type="button" class="btn btn-info btn-sm" title="编辑工单" id="btnWorkListEdit"
                       onclick="doWorkorderUpdate({{ work_order.id }})">
                   <i class="fa fa-pencil"> 编辑</i>
               </button>
-              <button type="button" class="btn btn-success btn-sm" title="派发工单" id="btnWorkListSend"
-                      onclick="doWorkorderSend({{ work_order.id }})">
-                  <i class="fa fa-send-o"> 派发</i>
-              </button>
-                <button type="button" class="btn btn-primary btn-sm" title="确认采购" id="btnWorkListExecute"
-                      onclick="doWorkorderExecute({{ work_order.id }})">
-                  <i class="fa fa-shopping-cart" aria-hidden="true"> 采购</i>
-              </button>
-             <button type="button" class="btn btn-default btn-sm" title="执行确认" id="btnWorkListFinish"
-                  onclick="doWorkorderFinish({{ work_order.id }})">
-              <i class="fa fa-check"> 确认</i>
-              </button>
+{#              <button type="button" class="btn btn-success btn-sm" title="派发工单" id="btnWorkListSend"#}
+{#                      onclick="doWorkorderSend({{ work_order.id }})">#}
+{#                  <i class="fa fa-send-o"> 派发</i>#}
+{#              </button>#}
+{#                <button type="button" class="btn btn-primary btn-sm" title="确认采购" id="btnWorkListExecute"#}
+{#                      onclick="doWorkorderExecute({{ work_order.id }})">#}
+{#                  <i class="fa fa-shopping-cart" aria-hidden="true"> 采购</i>#}
+{#              </button>#}
+{#             <button type="button" class="btn btn-default btn-sm" title="执行确认" id="btnWorkListFinish"#}
+{#                  onclick="doWorkorderFinish({{ work_order.id }})">#}
+{#              <i class="fa fa-check"> 确认</i>#}
+{#              </button>#}
             </div>
            </div>
 
@@ -142,7 +146,7 @@
                   <table class="table" id="tbWorkList"  style="white-space: nowrap;">
                     <tbody>
                         <tr>
-                            <td><strong>订单号</strong></td>
+                            <td class="col-md-2"><strong>订单号</strong></td>
                             <td>{{ work_order.order_number }}</td>
                         </tr>
                          <tr>
@@ -418,7 +422,9 @@
 	});
     layer.full(div)
 }
-
+function doReturn() {
+    window.history.back()
+}
 function doWorkorderUpdate(id){
 	var div=layer.open({
 		type : 2,
@@ -428,8 +434,8 @@ function doWorkorderUpdate(id){
 		area : [ '800px', '500px' ],
 		content : [ "{% url 'personal-workorder-update' %}"+'?id='+id],
 		end : function() {
-			//oDataTable.ajax.reload();
-            window.location.reload();
+			oDataTable.ajax.reload();
+            //window.location.reload();
 
 		}
 	});
