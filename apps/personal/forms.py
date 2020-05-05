@@ -17,7 +17,7 @@ class OrderForm(forms.ModelForm):
     """
     class Meta:
         model = Order
-        fields = ["status", "order_number", "remark", "system_sku", "maternal_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30", "purchase_status"]
+        fields = ["status", "order_number", "remark", "system_sku", "maternal_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30", "purchase_status", "purchaser"]
         error_messages = {
             # "id": {"required": "请输入SKU"},
             "system_sku": {"required": "请输入SKU"},
@@ -53,19 +53,19 @@ class OrderBackForm(forms.ModelForm):
 class OrderSendForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['id', 'status', 'remark1', 'purchaser']
+        fields = ['id', 'status', 'remark1']
 
 
 class OrderBugForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['id', 'order_quantity', 'remark2', 'status']
+        fields = ['id', 'purchase_quantity', 'remark2', 'status']
 
 
 class OrderFinallyForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['id', 'status', 'remark3', 'issued_quantity', 'remaining_stock_quantity', 'warehouse_staff']
+        fields = ['id', 'status', 'issued_quantity',  'warehouse_staff']  # 'remaining_stock_quantity', 'position', 'remark3',
 
 
 class ImageUploadForm(forms.ModelForm):
@@ -150,7 +150,7 @@ class WorkOrderProjectUploadForm(forms.ModelForm):
 class StockCreateForm(forms.ModelForm):
     class Meta:
         model = Stock
-        fields = ['system_sku', 'stock_quantity', 'finish_status', 'accessories_name', 'position', 'remark']
+        fields = ['system_sku', 'stock_quantity', 'img', 'remark', 'position', 'product_chinese_name', 'comparison_code']
         error_messages = {
             "system_sku": {"required": "请输入系统SKU"},
             "stock_quantity": {"required": "请输入库存数量"},

@@ -63,15 +63,16 @@
                     <thead>
                     <tr valign="middle">
                         <th><input type="checkbox" id="checkAll"></th>
-                        <th>母体SKU</th>
                         <th>系统SKU</th>
                         <th>产品中文名</th>
-                        <th>近30天销量</th>
-                        <th class="info">采购数量</th>
+                        <th>对照码</th>
+                        <th class="info">订单数量</th>
+                        <th>打包数量</th>
+                        <th>缺的数量</th>
+                        <th>多或剩数量</th>
                         <th>是否成品</th>
                         <th>订单状态</th>
                         <th>申请人</th>
-                        <th>备注</th>
                         <th>操作</th>
                     </tr>
                     </thead>
@@ -122,9 +123,7 @@
 						},
 						    columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-                                {
-									data : "maternal_sku__sku",
-								},
+
 								{
 									data : "system_sku",
 								},
@@ -132,11 +131,29 @@
 									data : "product_chinese_name",
 								},
                                 {
-									data : "sales_30",
+									data : "comparison_code",
 								},
                                 {
 									data : "purchase_quantity",
 								},
+                                {
+									data : "issued_quantity",
+                                    render : function(data, type, row, meta) {
+										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='issued_quantity' value='${data}'>`
+									}
+								},
+                                {
+									data : "lack",
+                                    render : function(data, type, row, meta) {
+										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='lack' value='0'>`
+									}
+								},
+                                {
+                                    data: "lack",
+                                    render: function(data, type, row, meta){
+                                        return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='more' value='0'>`
+                                    }
+                                },
                                 {
 									data : "finish_status",
                                     render : function(data, type, row, meta) {
@@ -151,13 +168,13 @@
 									data : "status",
                                     render : function(data, type, row, meta) {
 										if (data==0){
-                                            var ret="<button class='btn btn-danger btn-xs'>已退回订单</button>";
+                                            var ret="<button class='btn btn-danger btn-xs'>订单已退回</button>";
 											return ret;
 										}if(data==1){
-											var ret="<button class='btn btn-info btn-xs'>已保存-未提交</button>";
+											var ret="<button class='btn btn-info btn-xs'>新建-保存</button>";
 											return ret;
 										}if(data==2) {
-                                            var ret="<button class='btn btn-warning btn-xs'>已提交-等待审批</button>";
+                                            var ret="<button class='btn btn-warning btn-xs'>提交-等待审批</button>";
 											return ret;
                                         }if(data==3) {
                                             var ret="<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
@@ -166,14 +183,14 @@
                                             var ret="<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
 											return ret;
                                         }if(data==5) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>订单已完成</button>";
+                                            var ret="<button class='btn btn-info btn-xs'>订单已完成</button>";
 											return ret;
                                         }if(data==6) {
                                             var ret="<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
 											return ret;
                                         }
 										if(data==7) {
-                                            var ret="<button class='btn btn-danger btn-xs' title='数量不够'>问题订单</button>";
+                                            var ret="<button class='btn btn-danger btn-xs'>问题订单</button>";
 											return ret;
                                         }
 									}
@@ -181,23 +198,17 @@
                                 {
                                     data:"operation__name"
                                 },
-                                {
-									data : "remark",
-								},
 								{
 									data : "id",
 									bSortable : "false",
 									render : function(data, type, row, meta) {
-									    var ret="<button title='提交' onclick='doCommit("
-										+ data+","+row.status+ ")'><i class='fa fa-check-square-o'></i></button>";
-										ret=ret+"<button title='订单详情' onclick='doDetail("
+									    var ret="<button title='确认订单' ids='"+data+"' status='"+row.status+"'class='commited'><i class='fa fa-check'></i></button>";
+										ret= ret+"<button title='订单详情' onclick='doDetail("
 										+ data + ")'><i class='glyphicon glyphicon-list-alt'></i></button>";
                                         ret=ret+"<button title='编辑' onclick='doUpdate("
 										+ data + ")'><i class='glyphicon glyphicon-pencil'></i></button>";
 										 ret=ret+"<button title='删除' onclick='doDelete("
                                             + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-										 ret=ret+"<button title='退回' onclick='doReturn("
-                                            + data +","+row.status+ ")'><i class='glyphicon glyphicon-remove'></i></button>";
 										return ret;
 									}
 								},
@@ -223,10 +234,9 @@
 						}));
 		return oTable;
 	}
-      $("#btnWorkorderSearch").click(function(){
+	$("#btnWorkorderSearch").click(function(){
             oDataTable.ajax.reload();
         });
-
 	//checkbox全选
     $("#checkAll").on("click", function () {
         if ($(this).prop("checked") === true) {
@@ -237,7 +247,6 @@
             $('#example tbody tr').removeClass('selected');
         }
     });
-
 	$("#btnCreate").click(function() {
 		var div=layer.open({
 			type : 2,
@@ -253,11 +262,9 @@
 		});
            layer.full(div)
 	});
-
 	$("#btnRefresh").click(function(){
 		oDataTable.ajax.reload();
 	});
-
 	//批量删除
 	$("#btnDelete").click(function() {
 		if ($("input[name='checkList']:checked").length == 0){
@@ -300,52 +307,50 @@
 		});
 	});
 });
+  //点击提交
+  $("tbody").on("click", ".commited",function () {
+        let id = $(this).attr("ids");
+        let issued_quantity = $(this).parent().parent().find(".issued_quantity").val();
+        let lack = $(this).parent().parent().find(".lack").val(); //缺少的
+        let status = $(this).attr("status");  //订单状态
+        let more = $(this).parent().parent().find(".more").val(); //多出来的
+        if (status === "5"){
+            layer.alert("当前订单已完成, 无法更改！",{icon:2});
+            return
+        }
+        if(issued_quantity.length>0) {
+            $.post("/personal/workorder_rec/finish", {
+                "id": id,
+                "issued_quantity": issued_quantity,
+                "lack": lack,
+                "more": more,
+                "warehouse_staff": {{ request.user.id }},
+                "list": status,
+                "status": status,
+                "csrfmiddlewaretoken": '{{ csrf_token }}'
+            }, function (data) {
+                if (data.code===1000) {
+                    oDataTable.ajax.reload();
+                }else if(data.code===1002){
+                    layer.alert("由于数量缺少,订单有问题,等待采购补采",{icon:1});
+                }else if(data.code===1004){
+                    oDataTable.ajax.reload();
+                }else if(data.code===1003){
+                    layer.alert("问题状态下,缺为0才可确认订单",{icon:1});
+                }else{
+                    layer.alert("当前订单状态不能更改",{icon:2});
+                }
+            })
+        }else{
+            layer.alert("打包数量不能为空！",{icon:2});
+        }
+    });
+
+
+
 
 function doDetail(id){
     window.location.href="{% url 'personal-workorder-detail' %}?id="+id;
-}
-
-function doReturn(id,status) {
-    if({{ power|safe }}.includes("运营")){
-        layer.alert('你无法进行此操作！',{icon: 2});
-        return;
-    };
-    if({{ power|safe }}.includes("运营经理")){
-        if(status==2){
-            $.post("{% url 'personal-workorder-return' %}", {"id": id, "list": "list", "status": 0, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    }
-}
-
-function doCommit(id,status) {
-    if({{ power|safe }}.includes("运营")){
-        if(status==0||status==1){
-            $.post("{% url 'personal-workorder-update' %}", {"id": id, "list": "list", "status": 2, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    };
-    if({{ power|safe }}.includes("运营经理")){
-        if(status==2){
-            $.post("{% url 'personal-workorder-send' %}", {"id": id, "list": "list", "status": 3, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    }
 }
 
 function doUpdate(id){

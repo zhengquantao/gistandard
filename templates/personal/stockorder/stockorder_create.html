@@ -11,43 +11,66 @@
     <div class="box box-danger">
         <form class="form-horizontal" id="addForm" method="post">
             {% csrf_token %}
-            <input type="hidden" name='operation' value="{{ request.user.id }}"/>
+            <input type="hidden" name='operation' value=""/>
             <div class="box-body">
                 <fieldset>
                     <legend>
                         <div class="form-group has-feedback">
-                            <div class="col-sm-8">创建订单</div>
+                            <div class="col-sm-8">新增商品库存</div>
                         </div>
                     </legend>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="system_sku" type="text" value="{{ order.system_sku }}"/>
+                            <input class="form-control" name="system_sku" type="text" value=""/>
                         </div>
                         <label class="col-sm-2 control-label">母体SKU</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="maternal_sku" value="{{ order.maternal_sku.sku }}" type="text"/>
+                            <input class="form-control" name="maternal_sku" value=""
+                                   type="text"/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">下单数量</label>
+                        <label class="col-sm-2 control-label">产品中文名</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="order_quantity" type="text" value="{{ order.order_quantity }}"/>
+                            <input class="form-control" name="product_chinese_name" type="text"
+                                   value=""/>
                         </div>
-                        <label class="col-sm-2 control-label">订单状态</label>
+                        <label class="col-sm-2 control-label">对照码</label>
                         <div class="col-sm-3">
-                            <select class="form-control select2" style="width:100%;" name="status">
-{#                                <option value="{{ order.status }}">{{ order.get_status_display }}</option>#}
-                                <option value="1">新建-保存</option>
-                                <option value="2">提交-等待审批</option>
-                            </select>
+                            <input class="form-control" name="comparison_code" type="text"
+                                   value=""/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-                        <label class="col-sm-2 control-label">审批人</label>
+                        <label class="col-sm-2 control-label">库存数量</label>
                         <div class="col-sm-3">
-                            <span class="form-control" readonly="readonly">{{ operation_manager.name }}</span>
-                            <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}" type="hidden"/>
+                            <input class="form-control" value="" name="stock_quantity"
+                                   type="text" oninput="value=value.replace(/[^\d]/g,'')"/>
+                        </div>
+                        <label class="col-sm-2 control-label">采购链接</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="purchase_link" type="text" placeholder="非必填"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">上传图片</label>
+                        <div class="col-sm-3">
+                            <label for="upload" class="control-label">
+                                    <img src="/media/image/default2.png" id="upload_img" height="40" width="40">
+                                </label>
+                                <input type="file" accept="image/*" style="display: none" name="img" id="upload">
+                        </div>
+                         <label class="col-sm-2 control-label">位置</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="position" type="text"
+                                   value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">备注内容</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" name="remark" rows="5"></textarea>
                         </div>
                     </div>
                 </fieldset>
@@ -67,13 +90,21 @@
     <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
     <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
     <script type="text/javascript">
-
+      $("#upload").change(function(){
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(this.files[0]);// 读取文件是需要时间的
+            fileReader.onload = function () {
+            $("#upload_img").attr("src", fileReader.result);
+            };
+        });
         $("#btnSave").click(function () {
-            var data = $("#addForm").serialize();
+            var data = new FormData($("#addForm")[0]);
             $.ajax({
                 type: $("#addForm").attr('method'),
                 url: "{% url 'personal-stockorder-create' %}",
                 data: data,
+                contentType: false,
+                processData: false,
                 cache: false,
                 beforeSend: function () {
                     this.layerIndex = layer.load(1, {
@@ -83,21 +114,12 @@
                 success: function (msg) {
                     layer.closeAll('loading');
                     if (msg.status == 'success') {
-                        layer.alert('订单保存成功！', {icon: 1}, function (index) {
+                        layer.alert('库存增加成功！', {icon: 1}, function (index) {
                             parent.layer.closeAll(); //关闭所有弹窗
                         });
                     } else if (msg.status == 'fail') {
-                        layer.alert(msg.stock_order_form_errors, {icon: 5});
-                    } else if (msg.status == 'sku_fail') {
-                        layer.alert("请填写sku", {icon: 5});
-                    } else if (msg.status == 'quantity_fail') {
-                        layer.alert("请填写下单数量", {icon: 5});
-                    } else if (msg.status == 'status_fail') {
-                        layer.alert("请填写状态", {icon: 5});
-                    } else if (msg.status == 'operation_manager_fail') {
-                        layer.alert("请填写审批人", {icon: 5});
+                        layer.alert(msg.work_order_form_errors, {icon: 5});
                     }
-
                     return;
                 }
             });
@@ -106,7 +128,6 @@
         /*点取消刷新新页面*/
         $("#btnCancel").click(function () {
             window.location.reload();
-
         })
 
         /*input 时间输入选择*/
@@ -129,6 +150,9 @@
             //Initialize Select2 Elements
             $(".select2").select2();
         });
+        $("#close-html").click(function () {
+            window.history.back()
+        })
     </script>
 
 {% endblock %}

@@ -23,62 +23,23 @@
 <section class="content">
      <div id="devlist">
         <div class="box box-primary" id="liebiao">
-            <div class="box-header">
-                <div class="btn-group pull-left">&nbsp</div>
-                <div class="btn-group pull-left">
-                    <button type="button" id="btnCreate" class="btn btn-primary ">
-                        <i class="glyphicon glyphicon-plus"></i>新建订单
-                    </button>
 
-                </div>
-                <div class="btn-group pull-left">&nbsp</div>
-                <div class="btn-group pull-left">
-                    <button type="button" id="btnRefresh" class="btn btn-default">
-                        <i class="glyphicon glyphicon-refresh"></i>刷新
-                    </button>
-                </div>
-            </div>
-            <div class="box-header">
-              <form class="form-inline" id="queryForm">
-                <div class="form-group searchArea margin-r-5 margin-top-5">
-                    <label>系统SKU：</label>
-                    <input type="text" name="system_sku" class="form-control inputText" id="system_sku" placeholder="请输入系统SKU">
-                </div>
-               <div class="form-group searchArea margin-r-5 margin-top-5">
-                <label>订单状态：</label>
-                <select class="form-control inputText select2" name="order_status" id="order_status">
-                    <option></option>
-                    {% for status in status_list %}
-                    <option value={{ status.item }}>{{ status.value }}</option>
-                    {% endfor %}
-                </select>
-              </div>
-                <button type="button" id="btnWorkorderSearch" class="btn btn-default">
-                    <i class="glyphicon glyphicon-search"></i>查询
-                </button>
-            </form>
-            </div>
              <div class="box-body">
                 <table id="dtbList" class="display" cellspacing="0" width="100%">
                     <thead>
                     <tr valign="middle">
-                        <th><input type="checkbox" id="checkAll"></th>
-                        <th>母体SKU</th>
-                        <th>系统SKU</th>
-                        <th>产品中文名</th>
-                        <th>近30天销量</th>
-                        <th class="info">采购数量</th>
-                        <th>是否成品</th>
-                        <th>订单状态</th>
-                        <th>申请人</th>
-                        <th>备注</th>
-                        <th>操作</th>
+                        <th>商品SKU</th>
+                        <th>中文名</th>
+                        <th>操作前数量</th>
+                        <th>操作后数量</th>
+                        <th>操作人</th>
+                        <th>操作时间</th>
+                        <th class="info">操作内容</th>
                     </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
-                <br> <br>
             </div>
         </div>
      </div>
@@ -113,94 +74,38 @@
 						DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
 						{
 							ajax : {
-								"url":"{% url 'personal-workorder-list' %}",
+								"url":"{% url 'personal-workorder_app' %}",
+                                "type": "post",
 								"data":function ( d ) {
 								    d.main_url="{{ menu.url }}";
 									d.system_sku=$("#system_sku").val();
 									d.order_status=$("#order_status").val();
+									d.csrfmiddlewaretoken="{{ csrf_token }}";
 								}
 						},
 						    columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
                                 {
-									data : "maternal_sku__sku",
+									data : "sku",
 								},
 								{
-									data : "system_sku",
+									data : "sku_name",
 								},
 								{
-									data : "product_chinese_name",
+									data : "before_number",
 								},
                                 {
-									data : "sales_30",
+									data : "after_number",
 								},
                                 {
-									data : "purchase_quantity",
+									data : "user",
 								},
                                 {
-									data : "finish_status",
-                                    render : function(data, type, row, meta) {
-										if (data==0){
-											return "成品";
-										}if(data==1){
-											return "配件";
-										}
-									}
+									data : "time",
 								},
                                 {
-									data : "status",
-                                    render : function(data, type, row, meta) {
-										if (data==0){
-                                            var ret="<button class='btn btn-danger btn-xs'>已退回订单</button>";
-											return ret;
-										}if(data==1){
-											var ret="<button class='btn btn-info btn-xs'>已保存-未提交</button>";
-											return ret;
-										}if(data==2) {
-                                            var ret="<button class='btn btn-warning btn-xs'>已提交-等待审批</button>";
-											return ret;
-                                        }if(data==3) {
-                                            var ret="<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
-											return ret;
-                                        }if(data==4) {
-                                            var ret="<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
-											return ret;
-                                        }if(data==5) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>订单已完成</button>";
-											return ret;
-                                        }if(data==6) {
-                                            var ret="<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
-											return ret;
-                                        }
-										if(data==7) {
-                                            var ret="<button class='btn btn-danger btn-xs' title='数量不够'>问题订单</button>";
-											return ret;
-                                        }
-									}
-								},
-                                {
-                                    data:"operation__name"
-                                },
-                                {
-									data : "remark",
-								},
-								{
-									data : "id",
-									bSortable : "false",
-									render : function(data, type, row, meta) {
-									    var ret="<button title='提交' onclick='doCommit("
-										+ data+","+row.status+ ")'><i class='fa fa-check-square-o'></i></button>";
-										ret=ret+"<button title='订单详情' onclick='doDetail("
-										+ data + ")'><i class='glyphicon glyphicon-list-alt'></i></button>";
-                                        ret=ret+"<button title='编辑' onclick='doUpdate("
-										+ data + ")'><i class='glyphicon glyphicon-pencil'></i></button>";
-										 ret=ret+"<button title='删除' onclick='doDelete("
-                                            + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-										 ret=ret+"<button title='退回' onclick='doReturn("
-                                            + data +","+row.status+ ")'><i class='glyphicon glyphicon-remove'></i></button>";
-										return ret;
-									}
-								},
+									data : "content",
+								}
                         ],
                             dom: 'Bfrtip',
                             buttons: [
@@ -299,53 +204,12 @@
 			}
 		});
 	});
+
+
 });
 
 function doDetail(id){
     window.location.href="{% url 'personal-workorder-detail' %}?id="+id;
-}
-
-function doReturn(id,status) {
-    if({{ power|safe }}.includes("运营")){
-        layer.alert('你无法进行此操作！',{icon: 2});
-        return;
-    };
-    if({{ power|safe }}.includes("运营经理")){
-        if(status==2){
-            $.post("{% url 'personal-workorder-return' %}", {"id": id, "list": "list", "status": 0, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    }
-}
-
-function doCommit(id,status) {
-    if({{ power|safe }}.includes("运营")){
-        if(status==0||status==1){
-            $.post("{% url 'personal-workorder-update' %}", {"id": id, "list": "list", "status": 2, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    };
-    if({{ power|safe }}.includes("运营经理")){
-        if(status==2){
-            $.post("{% url 'personal-workorder-send' %}", {"id": id, "list": "list", "status": 3, "csrfmiddlewaretoken": '{{ csrf_token }}'}, function (data) {
-            if(data){
-                oDataTable.ajax.reload();
-            }
-        })
-        }else{
-            layer.alert('当前订单状态无法操作成功！',{icon: 2});
-        }
-    }
 }
 
 function doUpdate(id){
