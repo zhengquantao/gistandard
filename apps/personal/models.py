@@ -55,8 +55,9 @@ class MaternalSku(models.Model):
 
 
 class Order(models.Model):
-    status_choices = (('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待确认'), ('5', '订单已完成'))
+    status_choices = (('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
+    store_choices = (('0', '未缺货'), ('1', '缺货'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
     order_number = models.CharField(max_length=10, verbose_name='订单号')
@@ -82,6 +83,14 @@ class Order(models.Model):
     warehouse_staff = models.ForeignKey(User, related_name='warehouse_staff', blank=True, null=True, on_delete=models.SET_NULL, verbose_name='仓储人员')
     purchase_status = models.IntegerField(verbose_name="采购状态", default=0, null=True, blank=True)
     position = models.CharField(max_length=500, verbose_name='位置', blank=True, null=True, default="")
+    is_store = models.CharField(max_length=5, choices=store_choices, default='0', verbose_name='是否入库')
+    remark4 = models.CharField(max_length=500, verbose_name="质检备注", null=True, blank=True)
+    lack = models.IntegerField(verbose_name="缺少数量", null=True, blank=True, default=0)
+    lack_warehouse_staff = models.IntegerField(verbose_name='质检缺或坏数量', null=True, blank=True, default=0)
+    time2 = models.DateTimeField(verbose_name="运营经理确认时间", default=datetime.datetime.now, null="", blank=True)
+    time3 = models.DateTimeField(verbose_name="采购确认时间", default=datetime.datetime.now, null="", blank=True)
+    time4 = models.DateTimeField(verbose_name="质检确认时间", default=datetime.datetime.now, null="", blank=True)
+    time5 = models.DateTimeField(verbose_name="打包确认时间", default=datetime.datetime.now, null="", blank=True)
 
 
 class Stock(models.Model):
@@ -116,3 +125,37 @@ class StockOrder(models.Model):
     operation = models.ForeignKey(User, related_name='stock_order_operation', null=True, on_delete=models.SET_NULL, verbose_name='运营')
     operation_manager = models.ForeignKey(User, related_name='stock_order_operation_manager', null=True, on_delete=models.SET_NULL, verbose_name='运营经理')
 
+
+class SkuToUrl(models.Model):
+    """
+    sku对应URL表
+    """
+    sku = models.CharField(max_length=120, verbose_name="商品sku", null=True, default="")
+    url = models.CharField(max_length=256, verbose_name="商品url", null=True, default="")
+    supplier = models.CharField(max_length=120, verbose_name="供应商名称", null=True, default="")
+
+
+class StockLog(models.Model):
+    """
+    库存操作日志
+    """
+    user = models.CharField(max_length=60, verbose_name="操作人", null=True, default="")
+    after_number = models.IntegerField(verbose_name="操作后数量", null=True, default="")
+    before_number = models.IntegerField(verbose_name="操作前数量", null=True, default="")
+    time = models.DateTimeField(verbose_name="操作时间", auto_now_add=True, auto_created=True)
+    content = models.CharField(verbose_name="操作内容", max_length=60, null=True, default="")
+    sku = models.CharField(verbose_name="商品sku", max_length=60, null=True, default="")
+    sku_name = models.CharField(verbose_name="中文名", max_length=60, null=True, default="")
+
+
+class PersonStore(models.Model):
+    """
+    个人库存清算
+    """
+    system_sku = models.CharField(max_length=120, verbose_name="商品sku", null=True, default="")
+    product_chinese_name = models.CharField(max_length=120, verbose_name="中文名", null=True, default="")
+    img = models.CharField(max_length=256, verbose_name="图片", null=True, default="")
+    number = models.IntegerField(verbose_name="当前数量", null=True, default=0)
+    time = models.DateField(default=datetime.datetime.today, verbose_name='添加时间')
+    other = models.CharField(max_length=256, verbose_name="备用字段", null=True, default=0)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, verbose_name='所属人')
