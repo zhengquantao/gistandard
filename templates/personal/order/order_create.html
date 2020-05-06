@@ -45,13 +45,12 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-{#                        <label class="col-sm-2 control-label">订单状态</label>#}
-{#                        <div class="col-sm-3">#}
-{#                            <select class="form-control select2" style="width:100%;" name="status">#}
-{#                                <option value="1">新建-保存</option>#}
-{#                                <option value="2">提交-等待审批</option>#}
-{#                            </select>#}
-{#                        </div>#}
+                        <div class="col-sm-3 hidden">
+                            <select class="form-control select2" style="width:100%;" name="status">
+                                <option value="1">新建-保存</option>
+                                <option value="2">提交-等待审批</option>
+                            </select>
+                        </div>
                     <label class="col-sm-2 control-label">采购人</label>
                         <div class="col-sm-3">
                             <select class="form-control select2" style="width:100%;" name="purchaser">
@@ -85,7 +84,7 @@
                         <label class="col-sm-2 control-label">采购数量</label>
                         <div class="col-sm-3">
                             <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity"
-                                   type="text" oninput="value=value.replace(/[^\d]/g,'')"/>
+                                   type="text" oninput="value=value.replace(/[^\d]/g,'')" min="0"/>
                         </div>
                         <label class="col-sm-2 control-label">采购链接</label>
                         <div class="col-sm-3">
@@ -96,7 +95,7 @@
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">最近30天销量</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
+                            <input class="form-control" oninput="value=value.replace(/[^\d]/g,'')" min="0" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
                         </div>
 
                     </div>
@@ -198,21 +197,21 @@
                 success: function (msg) {
                     layer.closeAll('loading');
                     if (msg.status == 'success') {
-                        layer.alert('工单保存成功！', {icon: 1}, function (index) {
+                        layer.alert('订单保存成功！', {icon: 1}, function (index) {
                             parent.layer.closeAll(); //关闭所有弹窗
                         });
                     } else if (msg.status == 'fail') {
                         layer.alert(msg.work_order_form_errors, {icon: 5});
                     } else if (msg.status == 'submit') {
-                        layer.alert('工单申请已提交', {icon: 0}, function (index) {
+                        layer.alert('订单申请已提交', {icon: 0}, function (index) {
                             parent.layer.closeAll(); //关闭所有弹窗
                         });
                     } else if (msg.status == 'submit_send') {
-                        layer.alert('工单申请已提交', {icon: 1}, function (index) {
+                        layer.alert('订单申请已提交', {icon: 1}, function (index) {
                             parent.layer.closeAll(); //关闭所有弹窗
                         });
                     }else{
-                        layer.alert('工单申请已提交', {icon: 1}, function (index) {
+                        layer.alert('订单申请已提交', {icon: 1}, function (index) {
                             parent.layer.closeAll(); //关闭所有弹窗
                         });
                     }

@@ -42,7 +42,7 @@
               <form class="form-inline" id="queryForm">
                 <div class="form-group searchArea margin-r-5 margin-top-5">
                     <label>系统SKU：</label>
-                    <input type="text" name="system_sku" class="form-control inputText" id="system_sku" placeholder="请输入系统SKU">
+                    <input type="text" name="system_sku" class="form-control inputText" oninput="value=value.replace(/[^\d]/g,'')" min="0" id="system_sku" placeholder="请输入系统SKU">
                 </div>
                <div class="form-group searchArea margin-r-5 margin-top-5">
                 <label>订单状态：</label>
@@ -173,11 +173,15 @@
 											return ret;
                                         }
 										if(data==7) {
-                                            var ret="<button class='btn btn-danger btn-xs' title='数量不够'>问题订单</button>";
-											return ret;
+                                            var ret="<button class='btn btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
+                                            return ret;
                                         }
-									}
-								},
+                                        if(data==8) {
+                                            var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                                            return ret;
+                                        }
+                                        }
+                                    },
                                 {
                                     data:"operation__name"
                                 },

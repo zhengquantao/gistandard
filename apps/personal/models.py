@@ -55,7 +55,7 @@ class MaternalSku(models.Model):
 
 
 class Order(models.Model):
-    status_choices = (('0', '已退回订单'), ('1', '已保存-未提交'), ('2', '已提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '问题订单'))
+    status_choices = (('0', '已退回订单'), ('1', '已保存-未提交'), ('2', '已提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '已质检-还需采购'), ('8', '已采购-暂时缺货'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
@@ -91,6 +91,9 @@ class Order(models.Model):
     lack_warehouse_staff = models.IntegerField(verbose_name='质检缺或坏数量', null=True, blank=True, default=0)
     store_choices = (('0', '未缺货'), ('1', '缺货'))
     is_store = models.CharField(max_length=5, choices=store_choices, default='0', verbose_name='是否入库')
+    lack_purchase = models.IntegerField(verbose_name='采购缺的数量', null=True, blank=True, default=0)
+    fba_store = models.IntegerField(verbose_name='FBA库存数', null=True, blank=True, default=0)
+    load_num = models.IntegerField(verbose_name='在路上的数量', null=True, blank=True, default=0)
 
 
 class Stock(models.Model):

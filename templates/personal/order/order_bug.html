@@ -34,7 +34,7 @@
                 <select class="form-control inputText select2" name="order_status" id="order_status">
                     <option></option>
                     {% for status in status_list %}
-                    <option value={{ status.item }}>{{ status.value }}</option>
+                        <option value={{ status.item }}>{{ status.value }}</option>
                     {% endfor %}
                 </select>
               </div>
@@ -157,21 +157,25 @@
                         render : function(data, type, row, meta) {
                             let ret;
                             if(row.status==7){ //问题单
-                                ret = `<span class='all'>${row.lack||row.lack_warehouse_staff||0}</span>`
+                                ret = `<span class='all'>${row.child[0].lack||row.child[0].lack_warehouse_staff||0}</span>`
+                            }else if(row.status==8){
+                                ret = `<span class='all'>${row.child[0].lack_purchase||0}</span>`
                             }else{
                                 ret = `<span class='all'>${data}</span>`
                             }
                             return ret;
                         }
-                    },{
+                    },
+                    {
                         data : "order_quantity",
                         render : function(data, type, row, meta) {
-                            return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" class='order_quantity' value='${data}'>`
+                            return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min="0" class='order_quantity' value='${data}'>`
                         }
-                    },{
-                        data : "lack_warehouse_staff",
+                    },
+                    {
+                        data : "lack_purchase",
                         render : function(data, type, row, meta) {
-                            return `<input type='number' style='width: 60px' readonly oninput='value=value.replace(/[^\\d]/g,'')' class='lack'  value='${row.lack||data||0}'>`
+                            return `<input type='number' style='width: 60px' readonly oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack'  value='${data||0}'>`
                         }
                     },
                     {
@@ -218,7 +222,11 @@
                                     return ret;
                                 }
                                 if(data==7) {
-                                    var ret="<button class='btn btn-danger btn-xs'>问题订单</button>";
+                                    var ret="<button class='btn  btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
+                                    return ret;
+                                }
+                                if(data==8) {
+                                    var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
                                     return ret;
                                 }
                             }
@@ -325,7 +333,7 @@
     $("tbody").on("click", ".commited",function () {
         let system_sku = $(this).attr("word");
         let status = $(this).attr("status");
-        let order_quantity = $(this).parent().parent().find(".all").text(); //$(this).parent().parent().find(".order_quantity").val();
+        let order_quantity = $(this).parent().parent().find(".order_quantity").val();  // $(this).parent().parent().find(".all").text();
         let lack = $(this).parent().parent().find(".lack").val();
         let remark2 = $(this).parent().parent().find(".remark2").val();
         if(order_quantity.length>0) {

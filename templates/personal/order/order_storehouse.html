@@ -42,7 +42,7 @@
               <form class="form-inline" id="queryForm">
                 <div class="form-group searchArea margin-r-5 margin-top-5">
                     <label>订单号：</label>
-                    <input type="text" name="number" class="form-control inputText" id="number" placeholder="请输入订单号">
+                    <input type="text" name="number" class="form-control inputText" oninput="value=value.replace(/[^\d]/g,'')" min="0" id="number" placeholder="请输入订单号">
                 </div>
                <div class="form-group searchArea margin-r-5 margin-top-5">
                 <label>订单状态：</label>
