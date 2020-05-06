@@ -91,6 +91,9 @@ class Order(models.Model):
     lack_warehouse_staff = models.IntegerField(verbose_name='质检缺或坏数量', null=True, blank=True, default=0)
     store_choices = (('0', '未缺货'), ('1', '缺货'))
     is_store = models.CharField(max_length=5, choices=store_choices, default='0', verbose_name='是否入库')
+    lack_purchase = models.IntegerField(verbose_name='采购缺的数量', null=True, blank=True, default=0)
+    fba_store = models.IntegerField(verbose_name='FBA库存数', null=True, blank=True, default=0)
+    load_num = models.IntegerField(verbose_name='在路上的数量', null=True, blank=True, default=0)
 
 
 class Stock(models.Model):
@@ -130,9 +133,11 @@ class SkuToUrl(models.Model):
     """
     sku对应URL表
     """
+    status_choices = (('0', '不常用'), ('1', '常用'))
     sku = models.CharField(max_length=120, verbose_name="商品sku", null=True, default="")
     url = models.CharField(max_length=256, verbose_name="商品url", null=True, default="")
     supplier = models.CharField(max_length=120, verbose_name="供应商名称", null=True, default="")
+    status = models.CharField(max_length=10, choices=status_choices, default='0', verbose_name='是否常用')
 
 
 class PersonStore(models.Model):

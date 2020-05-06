@@ -104,18 +104,21 @@ urlpatterns = [
     # 创建商品库存
     url(r'^personal/stockorder_Icrt/create', stock.StockOrderCreateView.as_view(), name="personal-stockorder-create"),
     # 更改库存
-    url(r'^personal/stockorder_Icrt/update', stockorder.StockOrderUpdateView.as_view(), name="personal-stockorder-update"),
+    url(r'^personal/stockorder_Icrt/update', stockorder.StockOrderUpdateView.as_view(),
+        name="personal-stockorder-update"),
 
     # =============链接操作 ===============
     # 链接操作
     # 删除
-    url(r'^personal/stockorder_Icrt/delete', stockorder.StockOrderDeleteView.as_view(),
-        name="personal-stockorder-delete"),
+    url(r'^personal/stockorder_Icrt/delete', stockorder.StockOrderDeleteView.as_view(), name="personal-stockorder-delete"),
+    url(r'^personal/stockorder_Icrt/edit/', stockorder.StockOrderEditView.as_view(), name="personal-stockorder-edit"),
     # 增加
     url(r'^personal/stockorder_Icrt/list', stockorder.StockOrderListView.as_view(), name="personal-stockorder-list"),
 
     # 查询列表
     url(r'^personal/stockorder_Icrt/$', stockorder.StockOrderView.as_view(), name="personal-stockorder_Icrt"),
+
+    url(r'^personal/stockorder_Icrt/toLink/$', stockorder.StockOrderToLinkView.as_view(), name="personal-stockorder_Icrt-toLink"),
 
     # 库存日志 操作日志
     url(r'^personal/stockorder_app/$', order.WorkLog.as_view(), name="personal-workorder_app"),

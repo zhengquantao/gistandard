@@ -26,7 +26,7 @@ class StockOrderView(LoginRequiredMixin, View):
 
     def get(self, request):
         system_sku = request.GET.get("system_sku")
-        ret = dict(data=list(SkuToUrl.objects.filter(sku=system_sku).values("id", "sku", "url", "supplier")))
+        ret = dict(data=list(SkuToUrl.objects.filter(sku=system_sku).values("id", "sku", "url", "supplier", "status")))
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
@@ -53,8 +53,24 @@ class StockOrderListView(LoginRequiredMixin, View):
         system_sku = request.POST.get("system_sku")
         url = request.POST.get("url")
         supplier = request.POST.get("supplier")
-        SkuToUrl.objects.create(sku=system_sku, url=url, supplier=supplier)
-        ret = {"code": 1000}
+        # SkuToUrl.objects.create(sku=system_sku, url=url, supplier=supplier)
+        sku_to_url = SkuToUrl(sku=system_sku, url=url, supplier=supplier)
+        sku_to_url.save()
+        ret = {"code": 1000, "id": sku_to_url.id}
+        return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
+
+
+class StockOrderToLinkView(LoginRequiredMixin, View):
+    def get(self, request):
+        # role = get_object_or_404(Role, title='运营经理')
+        # approver = role.userprofile_set.all()
+        system_sku = request.GET.get("system_sku")
+        object_set = SkuToUrl.objects.filter(sku=system_sku, status="1").values("id", "sku", "url")
+        if not object_set:
+            object_set = SkuToUrl.objects.filter(sku=system_sku).order_by('-id').values("id", "sku", "url")
+            if not object_set:
+                object_set = ""
+        ret = dict(data=list(object_set))
         return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
 
 
@@ -121,6 +137,22 @@ class StockOrderDeleteView(LoginRequiredMixin, View):
         ret["code"] = 1000
         return HttpResponse(json.dumps(ret), content_type='application/json')
 
+
+# 标为常用
+class StockOrderEditView(LoginRequiredMixin, View):
+    def post(self, request):
+        ret = dict(result=False)
+        s_id = request.POST.get("id")
+        # print(id)
+        sku_to_url = SkuToUrl.objects.filter(id=s_id).first()
+        SkuToUrl.objects.filter(sku=sku_to_url.sku).update(status='0')
+        sku_to_url.status = "1"
+        sku_to_url.save()
+        ids = dict(data=list(SkuToUrl.objects.filter(sku=sku_to_url.sku).exclude(id=s_id).values("id")))
+        ret["code"] = 1000
+        ret["id"] = s_id
+        ret["ids"] = ids
+        return HttpResponse(json.dumps(ret), content_type='application/json')
 
 # 更新库存
 class StockOrderUpdateView(LoginRequiredMixin, View):
