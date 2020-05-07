@@ -65,7 +65,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
     def get(self, request):
         fields = ['system_sku', 'maternal_sku__sku', 'product_chinese_name', 'comparison_code', 'purchase_quantity',
                   'finish_status', 'status', 'remark', 'id', 'operation__name', 'purchase_link', 'order_quantity',
-                  'lack', 'remark2', 'remark4', 'lack_warehouse_staff', 'issued_quantity', 'sales_30', 'position', 'lack_purchase']
+                  'lack', 'remark2', 'remark4', 'lack_warehouse_staff', 'issued_quantity', 'sales_30', 'fba_store','position', 'lack_purchase']
         filters = dict()
 
         if 'system_sku' in request.GET and request.GET['system_sku']:
@@ -140,7 +140,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
 
             if "运营" in power:
                 filters['operation__id'] = user.id
-                filters['status__in'] = request.GET.get('order_status') if request.GET.get('order_status') else ['0', '1', '2', '3', '4', '6', '5', '7']
+                filters['status__in'] = request.GET.get('order_status') if request.GET.get('order_status') else ['0', '1', '2', '3', '4', '6', '5', '7', '8']
             if "采购" in power:
                 filters['purchaser__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['3', '4', '7', '8']
@@ -148,7 +148,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 sum_data = Order.objects.filter(**filters).values("system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
-                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__username", "purchase_quantity", "operation_manager__username", "lack_purchase", "lack", "lack_warehouse_staff"))
+                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff",   "remark", "warehouse_staff__name", "remark4"))
                     item["child"] = item_msg
                 ret = dict(data=list(sum_data))
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
@@ -176,7 +176,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 filters['operation_manager__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['0', '2', '3']
             if "管理" in power:
-                filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['0', '1', '2', '3', '4', '5', '6', '7']
+                filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['0', '1', '2', '3', '4', '5', '6', '7', '8']
             # if not request.GET['order_status']:
             #     filters['status__in'] = ['0', '1', '2', '3', '4', '5']
             ret = dict(data=list(Order.objects.filter(**filters).values(*fields).order_by(
@@ -466,12 +466,14 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         system_sku = request.POST.get("system_sku")
         status = request.POST.get("status")
 
-        if status == "7":  # 问题订单提交过来
-            Order.objects.filter(purchaser__id=request.user.id, status='7', system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack=0, lack_warehouse_staff=0)
+        # if status == "7":  # 问题订单提交过来
+        #     Order.objects.filter(purchaser__id=request.user.id, status='7', system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack=0, lack_warehouse_staff=0)
+        # if status == "8":  # 如果
+        #     pass
         if int(lack) == 0:
-            Order.objects.filter(purchaser__id=request.user.id, status='3', system_sku=system_sku).update(status="4", order_quantity=order_quantity, remark2=remark2, time3=datetime.datetime.now())
+            Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack_purchase=0, remark2=remark2, time3=datetime.datetime.now())
         if int(lack) > 0:
-            Order.objects.filter(purchaser__id=request.user.id,  system_sku=system_sku).update(status=8, lack_purchase=lack, order_quantity=order_quantity, remark2=remark2, time3=datetime.datetime.now())
+            Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku).update(status=8, lack_purchase=lack, order_quantity=order_quantity, remark2=remark2, time3=datetime.datetime.now())
         res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
@@ -495,14 +497,20 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
         issued_quantity = request.POST.get("issued_quantity")
         if request.POST.get("list") == "7":  # 还需采购
             if int(request.POST.get("lack")) == 0:
-                Order.objects.filter(id=request.POST.get("id")).update(status="5", issued_quantity=issued_quantity, time5=datetime.datetime.now())
+                Order.objects.filter(id=request.POST.get("id")).update(status="5", issued_quantity=issued_quantity, lack=0, time5=datetime.datetime.now())
                 res["code"] = 1004
             else:
                 res["code"] = 1003
             return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
         if request.POST.get("list") == "8":  # 缺货
-            Order.objects.filter(id=request.POST.get("id")).update(status="5", issued_quantity=issued_quantity,
-                                                                       time5=datetime.datetime.now())
+            lack_order = Order.objects.filter(id=request.POST.get("id"))
+            if lack_order:
+                # 如果发出与采购相等
+                if lack_order[0].purchase_quantity == issued_quantity:
+                    lack_order.update(status="5", issued_quantity=issued_quantity, time5=datetime.datetime.now(), lack=0)
+                # 不等
+                else:
+                    lack_order.update(status="8", issued_quantity=issued_quantity, lack=request.POST.get("lack"), time5=datetime.datetime.now())
             res["code"] = 1004
             return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
@@ -527,7 +535,7 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
                 is_item.update(stock_quantity=int(is_item[0].stock_quantity)-int(issued_quantity))
         elif int(request.POST.get("lack", 0)) > 0:
             # ========打包发现有缺=======
-            Order.objects.filter(id=request.POST['id']).update(status=7, lack=request.POST.get("lack"), lack_warehouse_staff=request.POST.get("lack"))
+            Order.objects.filter(id=request.POST['id']).update(status=7, issued_quantity=issued_quantity, lack=request.POST.get("lack"), lack_warehouse_staff=request.POST.get("lack"))
             # ========
             res["code"] = 1002
         else:

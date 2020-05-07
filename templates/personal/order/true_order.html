@@ -123,7 +123,7 @@
                                         return `${data[0].product_chinese_name}`
                                     }
                                 },
-                              {
+                                {
                                   data: "time3",
                                   render: function(data, type, row, meta){
                                       return `${data.replace("T", "&nbsp;&nbsp;").replace(/:\d\d\.\d*/, "")}`
@@ -135,7 +135,6 @@
 										return "<span class='all'>"+row.child[0].order_quantity+"</span>"
 									}
 								},
-
                                 {
 							        data : "order_quantity",
                                     render : function(data, type, row, meta) {
@@ -145,7 +144,12 @@
                                 {
                                     data : "lack_warehouse_staff",
                                     render : function(data, type, row, meta) {
-										return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='"+data+"'>"
+                                        if (row.status==8){
+                                            return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='0'>"
+                                        }else{
+                                           return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='"+data+"'>"
+                                        }
+
 									}
                                 },
                                 {

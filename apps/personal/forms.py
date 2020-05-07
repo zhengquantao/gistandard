@@ -17,7 +17,7 @@ class OrderForm(forms.ModelForm):
     """
     class Meta:
         model = Order
-        fields = ["status", "order_number", "remark", "system_sku", "maternal_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "purchase_link", "operation", "operation_manager", "sales_30", "purchase_status", "purchaser"]
+        fields = ["status", "order_number", "remark", "system_sku", "maternal_sku", "img", "product_chinese_name", "finish_status", "comparison_code", "purchase_quantity", "fba_store", "operation", "operation_manager", "sales_30", "purchase_status", "purchaser"]
         error_messages = {
             # "id": {"required": "请输入SKU"},
             "system_sku": {"required": "请输入SKU"},
@@ -27,7 +27,7 @@ class OrderForm(forms.ModelForm):
             "product_chinese_name": {"required": "请输入商品名"},
             "comparison_code": {"required": "请输入对照码"},
             "finish_status": {"required": "请输入品类"},
-            "purchase_link": {"required": "请输入采购链接"},
+            "fba_store": {"required": "请输入FBA数量"},
             "sales_30": {"required": "请输入最近30天销量"},
             "purchase_quantity": {"required": "请输入采购数量"},
             "operation": {"required": "请选择提交人"},

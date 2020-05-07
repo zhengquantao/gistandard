@@ -135,6 +135,13 @@
 								},
                                 {
 									data : "purchase_quantity",
+                                    //render: function (data, type, row, meta) {
+                                    //    if(row.status == 8){
+									//        return `${row.lack}`
+                                    //    }else{
+                                    //        return `${data}`
+                                    //    }
+                                    //}
 								},
                                 {
 									data : "issued_quantity",
@@ -145,8 +152,8 @@
                                 {
 									data : "lack",
                                     render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack' value='${data||0}'>`
-									}
+                                        return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack' value='${data||0}'>`
+                                    }
 								},
                                 {
                                     data: "lack",

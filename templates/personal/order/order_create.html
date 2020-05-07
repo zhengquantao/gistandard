@@ -86,10 +86,10 @@
                             <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity"
                                    type="text" oninput="value=value.replace(/[^\d]/g,'')" min="0"/>
                         </div>
-                        <label class="col-sm-2 control-label">采购链接</label>
+                        <label class="col-sm-2 control-label">FBA(途中/仓库)库存</label>
                         <div class="col-sm-3">
-                            <input class="form-control" name="purchase_link" type="text"
-                                   value="{{ order.purchase_link }}"/>
+                            <input class="form-control" name="fba_store" oninput="value=value.replace(/[^\d]/g,'')" min="0" type="text"
+                                   value="{{ order.fba_store }}"/>
                         </div>
                     </div>
                     <div class="form-group has-feedback">
@@ -97,7 +97,6 @@
                         <div class="col-sm-3">
                             <input class="form-control" oninput="value=value.replace(/[^\d]/g,'')" min="0" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
                         </div>
-
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">上传图片</label>

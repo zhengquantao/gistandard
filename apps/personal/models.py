@@ -133,9 +133,11 @@ class SkuToUrl(models.Model):
     """
     sku对应URL表
     """
+    status_choices = (('0', '不常用'), ('1', '常用'))
     sku = models.CharField(max_length=120, verbose_name="商品sku", null=True, default="")
     url = models.CharField(max_length=256, verbose_name="商品url", null=True, default="")
     supplier = models.CharField(max_length=120, verbose_name="供应商名称", null=True, default="")
+    status = models.CharField(max_length=10, choices=status_choices, default='0', verbose_name='是否常用')
 
 
 class PersonStore(models.Model):
