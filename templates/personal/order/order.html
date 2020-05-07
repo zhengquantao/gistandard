@@ -211,8 +211,14 @@
 										+ data + ")'><i class='glyphicon glyphicon-pencil'></i></button>";
 										 ret=ret+"<button title='删除' onclick='doDelete("
                                             + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-										 ret=ret+"<button title='退回' onclick='doReturn("
-                                            + data +","+row.status+ ")'><i class='glyphicon glyphicon-remove'></i></button>";
+										 {% for role in request.user.roles.all %}
+                                            {% if role.title == "运营" %}
+                                                ret = ret + "";
+                                            {% else %}
+                                                ret = ret + "<button title='退回' onclick='doReturn("
+                                                    + data + "," + row.status + ")'><i class='glyphicon glyphicon-remove'></i><tton>";
+                                            {% endif %}
+                                        {% endfor %}
 										return ret;
 									}
 								},
