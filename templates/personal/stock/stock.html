@@ -12,63 +12,64 @@
 
     <!-- Content Header (Page header) -->
 
-    <section class="content-header margin-bottom">
-        <ol class="breadcrumb">
-            <li><a href=""><i class="fa fa-dashboard"></i>办公平台</a></li>
-            <li class="active"><a href="{% url 'personal' %}">我的工作台</a></li>
-            <li class="active"><a href="{% url 'personal-stockorder_Icrt' %}">下单管理</a></li>
-        </ol>
-    </section>
-    <!-- Main content -->
-    <section class="content">
-        <div id="devlist">
-            <div class="box box-primary" id="liebiao">
-                <div class="box-header">
-                    <div class="btn-group pull-left">&nbsp</div>
-                    {% for role in request.user.roles.all %}
-                        {% if role.title != "采购" %}
-                            <div class="btn-group pull-left">
-                                <button type="button" id="btnCreate" class="btn btn-primary ">
-                                    <i class="glyphicon glyphicon-plus"></i>新增商品
-                                </button>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {#                <div class="btn-group pull-left">&nbsp</div>#}
-                    {#                <div class="btn-group pull-left">#}
-                    {#                    <button type="button" id="btnRefresh" class="btn btn-default">#}
-                    {#                        <i class="glyphicon glyphicon-refresh"></i>刷新#}
-                    {#                    </button>#}
-                    {#                </div>#}
+<section class="content-header margin-bottom">
+  <ol class="breadcrumb">
+    <li><a href=""><i class="fa fa-dashboard"></i>办公平台</a></li>
+    <li class="active"><a href="{% url 'personal' %}">我的工作台</a></li>
+    <li class="active"><a href="{% url 'personal-stockorder_Icrt' %}">下单管理</a></li>
+  </ol>
+</section>
+<!-- Main content -->
+<section class="content">
+     <div id="devlist">
+        <div class="box box-primary" id="liebiao">
+            <div class="box-header">
+                <div class="btn-group pull-left">&nbsp</div>
+                <div class="btn-group pull-left">
+                    <button type="button" id="btnCreate" class="btn btn-primary ">
+                        <i class="glyphicon glyphicon-plus"></i>新增商品
+                    </button>
+                    <button type="button" class="btn btn-default ">
+                        <a href="{% url 'personal-workorder_compute' %}"><i class="glyphicon glyphicon-glass"></i>购买统计</a>
+                    </button>
+                    <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-backward" onclick="back()"></i>返回</button>
                 </div>
-                <div class="box-header">
-                    <form class="form-inline" id="queryForm">
-                        <div class="form-group searchArea margin-r-5 margin-top-5">
-                            <label>系统SKU：</label>
-                            <input type="text" name="number" class="form-control inputText" id="number"
-                                   placeholder="请输入系统SKU">
-                        </div>
-                        <button type="button" id="btnWorkorderSearch" class="btn btn-default">
-                            <i class="glyphicon glyphicon-search"></i>查询
-                        </button>
-                    </form>
+{#                <div class="btn-group pull-left">&nbsp</div>#}
+{#                <div class="btn-group pull-left">#}
+{#                    <button type="button" id="btnRefresh" class="btn btn-default">#}
+{#                        <i class="glyphicon glyphicon-refresh"></i>刷新#}
+{#                    </button>#}
+{#                </div>#}
+            </div>
+            <div class="box-header">
+              <form class="form-inline" id="queryForm">
+                <div class="form-group searchArea margin-r-5 margin-top-5">
+                    <label>系统SKU：</label>
+                    <input type="text" name="number" class="form-control inputText" id="number" min="0" oninput="value=value.replace(/[^\d]/g,'')" placeholder="请输入系统SKU">
                 </div>
-                <div class="box-body">
-                    <table id="dtbList" class="display" cellspacing="0" width="100%">
-                        <thead>
-                        <tr valign="middle">
-                            <th><input type="checkbox" id="checkAll"></th>
-                            <th>母体SKU</th>
-                            <th>系统SKU</th>
-                            <th>库存数量</th>
-                            <th>操作</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                    <br> <br>
-                </div>
+                <button type="button" id="btnWorkorderSearch" class="btn btn-default">
+                    <i class="glyphicon glyphicon-search"></i>查询
+                </button>
+            </form>
+            </div>
+             <div class="box-body">
+                <table id="dtbList" class="display" cellspacing="0" width="100%">
+                    <thead>
+                    <tr valign="middle">
+                        <th><input type="checkbox" id="checkAll"></th>
+                        <th>母体SKU</th>
+                        <th>商品SKU</th>
+                        <th>中文名</th>
+                        <th>图片</th>
+                        <th>库存数量</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <br> <br>
+
             </div>
         </div>
     </section>
@@ -265,9 +266,14 @@
 
         });
 
-        function doDetail(id) {
-            window.location.href = "{% url 'personal-workorder-detail' %}?id=" + id;
-        }
+
+  function back(){
+      window.history.back()
+  }
+function doDetail(id){
+    window.location.href="{% url 'personal-workorder-detail' %}?id="+id;
+}
+
 
         function doUpdate(id) {
             var div = layer.open({

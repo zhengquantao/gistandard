@@ -27,7 +27,7 @@ class StockView(LoginRequiredMixin, View):
 
 class StockListView(LoginRequiredMixin, View):
     def get(self, request):
-        fields = ['id', 'system_sku', 'stock_quantity', 'maternal_sku__sku']
+        fields = ['id', 'system_sku', 'stock_quantity', 'maternal_sku__sku', 'product_chinese_name', 'purchase_link']
         filters = dict()
         sku = request.GET.get('number')
         if sku:

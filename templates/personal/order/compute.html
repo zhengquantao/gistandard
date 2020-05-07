@@ -94,9 +94,12 @@
 								},
 								{
 									data : "img",
+                                    render:function (data, type, row, meta) {
+                                        return `<img src="{{ MEDIA_URL }}${data}" class="img-thumbnail" width="80" height="80">`
+                                    }
 								},
                                 {
-									data : "user_id",
+									data : "user_id__name",
 								},
                                 {
 									data : "number",
@@ -108,9 +111,9 @@
 									data : "id",
 									bSortable : "false",
 									render : function(data, type, row, meta) {
-										var ret=ret+`<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".z${data}"></i></button>`
-                                        ret=ret+"<button title='删除' onclick='doDelete("
-                                            + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
+										var ret=`<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".z${data}"></i></button>`
+                                        //ret=ret+"<button title='删除' onclick='doDelete("
+                                        //    + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
 										 ret= ret+`<div class="modal fade z${data}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
                                                   <div class="modal-dialog modal-sm" role="document">
                                                     <div class="modal-content">
@@ -122,7 +125,7 @@
                                                     <form>
                                                       <div class="form-group">
                                                         <label for="recipient-name" class="control-label">库存:</label>
-                                                        <input type="number" class="form-control store_num" placeholder="旧库存是${row.number}, 请输入新库存">
+                                                        <input type="number" class="form-control store_num" oninput="value=value.replace(/[^\\d]/g,'')" min="0" placeholder="旧库存是${row.number}, 请输入新库存">
                                                       </div>
                                                     </form>
                                                   </div>
@@ -162,6 +165,52 @@
 	$("#btnWorkorderSearch").click(function(){
             oDataTable.ajax.reload();
         });
+
+	 // 其他人员编辑
+      $("tbody").on("click", ".btnEdit", function () {
+            let id = $(this).attr("ids");
+            let number = $(this).parent().siblings(".modal-body").find(".store_num").val();
+           $.ajax({
+               url:"{% url 'personal-workorder_compute' %}",
+               type:"POST",
+                data:{"id":id, "number": number, "update": "update", csrfmiddlewaretoken: '{{ csrf_token }}'},
+               dataType:'json',
+               success:function(data){
+                if(data.code ===1000){
+                    layer.alert('更新成功',{icon: 1});
+                    oDataTable.ajax.reload();
+                }else{
+                    layer.alert('没有权限',{icon: 2});
+                }
+               },
+                error:function () {
+                    layer.alert('没有权限',{icon: 2});
+                }
+
+           })
+      });
+
+      //删除
+      function doDelete(id){
+          $.ajax({
+               url:"{% url 'personal-workorder_compute' %}",
+               type:"POST",
+                data:{"id":id, "del": "del", csrfmiddlewaretoken: '{{ csrf_token }}'},
+               dataType:'json',
+               success:function(data){
+                if(data.code ===1000){
+                    layer.alert('更新成功',{icon: 1});
+                    oDataTable.ajax.reload();
+                }else{
+                    layer.alert('没有权限',{icon: 2});
+                }
+               },
+                error:function () {
+                    layer.alert('没有权限',{icon: 2});
+                }
+
+           })
+      }
 
 	//checkbox全选
     $("#checkAll").on("click", function () {

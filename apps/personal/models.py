@@ -55,7 +55,7 @@ class MaternalSku(models.Model):
 
 
 class Order(models.Model):
-    status_choices = (('0', '已退回订单'), ('1', '已保存-未提交'), ('2', '已提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '问题订单'))
+    status_choices = (('0', '已退回订单'), ('1', '已保存-未提交'), ('2', '已提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '已质检-还需采购'), ('8', '已采购-暂时缺货'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
     img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)

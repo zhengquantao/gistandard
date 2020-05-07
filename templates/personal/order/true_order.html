@@ -123,7 +123,7 @@
                                         return `${data[0].product_chinese_name}`
                                     }
                                 },
-                              {
+                                {
                                   data: "time3",
                                   render: function(data, type, row, meta){
                                       return `${data.replace("T", "&nbsp;&nbsp;").replace(/:\d\d\.\d*/, "")}`
@@ -132,20 +132,24 @@
                                 {
 									data : "All_sum",
                                     render : function(data, type, row, meta) {
-										return "<span class='all'>"+data+"</span>"
+										return "<span class='all'>"+row.child[0].order_quantity+"</span>"
 									}
 								},
-
                                 {
 							        data : "order_quantity",
                                     render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='order_quantity' value='${row.All_sum - row.lack_warehouse_staff||0}'>`
+										return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min="0" class='order_quantity' value='${data}'>`
 									}
                                 },
                                 {
                                     data : "lack_warehouse_staff",
                                     render : function(data, type, row, meta) {
-										return "<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='lack_warehouse_staff' value='"+data+"'>"
+                                        if (row.status==8){
+                                            return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='0'>"
+                                        }else{
+                                           return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='"+data+"'>"
+                                        }
+
 									}
                                 },
                                 {
@@ -173,8 +177,11 @@
                                             var ret="<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
 											return ret;
                                         }if(data==7) {
-                                            var ret="<button class='btn btn-danger btn-xs'>问题订单</button>";
+                                            var ret="<button class='btn btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
 											return ret;
+                                        }if(data==8) {
+                                            var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                                            return ret;
                                         }
 									}
 								},
@@ -204,7 +211,7 @@
                                     data : "system_sku",
                                     bSortable : "false",
                                     render : function(data, type, row, meta) {
-                                        var ret="<button title='质检完毕' class='commited' ids='"+row.id+"' word='"
+                                        var ret="<button title='质检完毕' class='commited' status='"+row.status+"' word='"
                                         + data + "'><i class='fa fa-check'></i></button>";
                                         //ret=ret+"<button title='删除' onclick='doDelete("
                                         //   + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
@@ -291,11 +298,16 @@
     //点击提交
     $("tbody").on("click", ".commited",function () {
         let system_sku = $(this).attr("word");
-        //let system_sku = $(this).attr("ids");
+        let status = $(this).attr("status");
         let order_quantity = $(this).parent().parent().find(".all").text();
         let lack = $(this).parent().parent().find(".lack_warehouse_staff").val();
         let remark2 = $(this).parent().parent().find(".remark2").val();
         let position = $(this).parent().parent().find(".position").val();
+        if(status==="8"){
+           layer.alert("该商品暂时缺货,但已有商品已提交至打包",{icon:1});
+          return;
+        }
+
       $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remakr2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
             if (data.code === 1000){
                 layer.alert("操作成功",{icon:1});

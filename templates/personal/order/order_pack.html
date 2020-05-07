@@ -135,23 +135,30 @@
 								},
                                 {
 									data : "purchase_quantity",
+                                    //render: function (data, type, row, meta) {
+                                    //    if(row.status == 8){
+									//        return `${row.lack}`
+                                    //    }else{
+                                    //        return `${data}`
+                                    //    }
+                                    //}
 								},
                                 {
 									data : "issued_quantity",
                                     render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='issued_quantity' value='${data}'>`
+										return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='issued_quantity' value='${data}'>`
 									}
 								},
                                 {
 									data : "lack",
                                     render : function(data, type, row, meta) {
-										return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='lack' value='0'>`
-									}
+                                        return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack' value='${data||0}'>`
+                                    }
 								},
                                 {
                                     data: "lack",
                                     render: function(data, type, row, meta){
-                                        return `<input type='number' style='width: 60px' oninput='value=value.replace(/[^\\d]/g,'')' class='more' value='0'>`
+                                        return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='more' value='0'>`
                                     }
                                 },
                                 {
@@ -190,8 +197,12 @@
 											return ret;
                                         }
 										if(data==7) {
-                                            var ret="<button class='btn btn-danger btn-xs'>问题订单</button>";
+                                            var ret="<button class='btn btn-xs' style='background-color:#f7807c;'>已质检-还需采购</button>";
 											return ret;
+                                        }
+										if(data==8) {
+                                            var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                                            return ret;
                                         }
 									}
 								},
@@ -333,6 +344,7 @@
                     oDataTable.ajax.reload();
                 }else if(data.code===1002){
                     layer.alert("由于数量缺少,订单有问题,等待采购补采",{icon:1});
+                    oDataTable.ajax.reload();
                 }else if(data.code===1004){
                     oDataTable.ajax.reload();
                 }else if(data.code===1003){
