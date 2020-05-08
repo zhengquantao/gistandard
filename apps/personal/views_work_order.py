@@ -148,7 +148,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 sum_data = Order.objects.filter(**filters).values("system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
-                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff",   "remark", "warehouse_staff__name", "remark4"))
+                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4"))
                     item["child"] = item_msg
                 ret = dict(data=list(sum_data))
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
@@ -166,7 +166,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                                                                                                          "product_chinese_name",
                                                                                                          "operation__username",
                                                                                                          "purchase_quantity",
-                                                                                                         "img", "order_quantity",
+                                                                                                         "img", "order_quantity",'remark4',
                                                                                                          "operation_manager__username").order_by("time2"))
                         item["child"] = item_msg
                     ret = dict(data=list(sum_data))
@@ -607,7 +607,7 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
         if int(lack_warehouse_staff) == 0:
             good_order = Order.objects.filter(status='4', system_sku=system_sku)
             if good_order:
-                good_order.update(status="6", remark4=remark4, lack_warehouse_staff=lack_warehouse_staff, position=position, time4=datetime.datetime.now())
+                good_order.update(status="6", remark4=remark4, warehouse_staff=request.user.id, lack_warehouse_staff=lack_warehouse_staff, position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='6', system_sku=system_sku)
                 # 商品入库
                 is_item = Stock.objects.filter(system_sku=system_sku)
@@ -641,7 +641,7 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
             good_order = Order.objects.filter(status='4', system_sku=system_sku)
             if good_order:
                 # 问题产品
-                good_order.update(status="7", remark4=remark4, lack_warehouse_staff=lack_warehouse_staff,
+                good_order.update(status="7", remark4=remark4, warehouse_staff=request.user.id,  lack_warehouse_staff=lack_warehouse_staff,
                                   position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='7', system_sku=system_sku)
                 # 商品入库

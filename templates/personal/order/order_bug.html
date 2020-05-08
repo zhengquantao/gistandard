@@ -238,12 +238,9 @@
                             data: "child",
                             render: function (data, type, row, meta) {
                                 if(data[0].remark || data[0].remark4){
-                                        let html = new Array();
-                                        for(let i in data){
-                                            let dom = [`${data[i].operation__name}:${data[i].remark}; ${data[i].warehouse_staff__name||''}:${data[i].remark4||''}`];
-                                            html.push(dom)
-                                        }
-                                        return `<i class="fa fa-commenting-o" style="color:red;cursor: pointer;" onclick='displayData("${html}")' aria-hidden="true"></i>`
+                                        let dataObjet = new Object();
+                                        dataObjet.data = data;
+                                        return `<i class="fa fa-commenting-o" style="color:red;cursor: pointer;" onclick='displayData(${JSON.stringify(dataObjet)})' aria-hidden="true"></i>`
                                     }else{
                                         return `<i class="fa fa-commenting-o" aria-hidden="true"></i>`
                                 }
@@ -374,8 +371,30 @@
         });
 
         function displayData(data) {
-            console.log(data, typeof data, '----');
-            layer.alert(data);
+            let html = new Array();
+            for(let i in data.data){
+                let dom;
+                if (data.data[i].remark){
+                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div></div>`
+                }
+                if (data.data[i].remark4){
+                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div>`
+                }
+                if (data.data[i].remark4 && data.data[i].remark){
+                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div>\n<label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div>`
+                }
+                html.push(dom)
+            }
+            layer.open({
+              type: 1
+              , skin: 'layui-layer-lan'
+              ,content: '<div style="padding: 1px 2px;">'+html.join("")+'</div>'
+              ,btn: '关闭全部'
+                ,area : [ '520px', '420px' ]
+              ,yes: function(){
+                layer.closeAll();
+              }
+            });
         }
 
         function doUpdate(id) {
