@@ -180,7 +180,8 @@
                                             var ret="<button class='btn btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
 											return ret;
                                         }if(data==8) {
-                                            var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                                            //var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                                            var ret="<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
                                             return ret;
                                         }
 									}
@@ -308,7 +309,7 @@
           return;
         }
 
-      $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remakr2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
+      $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remark2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
             if (data.code === 1000){
                 layer.alert("操作成功",{icon:1});
                 oDataTable.ajax.reload();
