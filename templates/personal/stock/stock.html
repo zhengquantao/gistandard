@@ -2,15 +2,15 @@
 {% load staticfiles %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.min.css' %}">
-<link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
-<link rel="stylesheet" href="{%static 'plugins/select2/select2.min.css' %}">
-<!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <!-- iCheck for checkboxes and radio inputs -->
 {% endblock %}
 
 {% block content %}
 
-<!-- Content Header (Page header) -->
+    <!-- Content Header (Page header) -->
 
 <section class="content-header margin-bottom">
   <ol class="breadcrumb">
@@ -26,13 +26,21 @@
             <div class="box-header">
                 <div class="btn-group pull-left">&nbsp</div>
                 <div class="btn-group pull-left">
-                    <button type="button" id="btnCreate" class="btn btn-primary ">
-                        <i class="glyphicon glyphicon-plus"></i>新增商品
-                    </button>
+                    {% for role in request.user.roles.all %}
+                        {% if role.title != "采购" %}
+                            <button type="button" id="btnCreate" class="btn btn-primary ">
+                                <i class="glyphicon glyphicon-plus"></i>新增商品
+                            </button>
+                        {% endif %}
+                    {% endfor %}
                     <button type="button" class="btn btn-default ">
                         <a href="{% url 'personal-workorder_compute' %}"><i class="glyphicon glyphicon-glass"></i>购买统计</a>
                     </button>
-                    <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-backward" onclick="back()"></i>返回</button>
+                    {% for role in request.user.roles.all %}
+                        {% if role.title != "采购" %}
+                            <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-backward" onclick="back()"></i>返回</button>
+                        {% endif %}
+                    {% endfor %}
                 </div>
 {#                <div class="btn-group pull-left">&nbsp</div>#}
 {#                <div class="btn-group pull-left">#}
@@ -69,46 +77,47 @@
                     </tbody>
                 </table>
                 <br> <br>
+
             </div>
         </div>
-     </div>
-  </section>
+    </section>
 
-<!-- /.content -->
+    <!-- /.content -->
 
 {% endblock %}
 
 {% block javascripts %}
-  <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
-  <script src="{% static 'plugins/datatables/dataTables.const.js' %}"></script>
-  <script src="{% static 'plugins/datatables/moment.min.js' %}"></script>
-  <script src="{% static 'js/plugins/layer/layer.js' %}"></script>
-  <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
-  <!-- iCheck 1.0.1 -->
-  <script type="text/javascript">
-	$(function() {
-	    $('#PERSONAL-STOCKORDER').addClass('active');
-	    $('#{{ menu.code }}').addClass('active');
-	});
-  </script>
+    <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.const.js' %}"></script>
+    <script src="{% static 'plugins/datatables/moment.min.js' %}"></script>
+    <script src="{% static 'js/plugins/layer/layer.js' %}"></script>
+    <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+    <!-- iCheck 1.0.1 -->
+    <script type="text/javascript">
+        $(function () {
+            $('#PERSONAL-STOCKORDER').addClass('active');
+            $('#{{ menu.code }}').addClass('active');
+        });
+    </script>
 
-<script type="text/javascript">
-  var oDataTable=null;
-  $(function() {
-	oDataTable = initTable();
-	function initTable() {
-		var oTable=$('#dtbList').DataTable($.extend(true,{},
-						DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
-						{
-							ajax : {
-								"url":"{% url 'personal-stock-list' %}",
-								"data":function ( d ) {
-								    d.number=$("#number").val();
-								}
-						},
-						columns : [
-								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-                                {
+    <script type="text/javascript">
+        var oDataTable = null;
+        $(function () {
+            oDataTable = initTable();
+
+            function initTable() {
+                var oTable = $('#dtbList').DataTable($.extend(true, {},
+                    DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
+                    {
+                        ajax: {
+                            "url": "{% url 'personal-stock-list' %}",
+                            "data": function (d) {
+                                d.number = $("#number").val();
+                            }
+                        },
+                        columns: [
+                            DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
+                            {
 									data : "maternal_sku__sku",
 								},
 								{
@@ -126,21 +135,22 @@
 								{
 									data : "stock_quantity",
 								},
-								{
-									data : "id",
-									bSortable : "false",
-									render : function(data, type, row, meta) {
-										var ret="<button title='去下单' onclick='doUpdate("
-										+ data + ")'><i class='glyphicon glyphicon-download'></i></button>";
-										{% for role in request.user.roles.all %}
-                                            {% if role.title == "仓库" or role.title == "采购" %}
-                                                ret = "";
-                                            {% endif %}
-                                        {% endfor %}
-										 ret=ret+`<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".${data}"></i></button>`;
-										 ret=ret+"<button title='删除' onclick='doDelete("
-                                            + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-										 ret= ret+`<div class="modal fade ${data}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+                            {
+                                data: "id",
+                                bSortable: "false",
+                                render: function (data, type, row, meta) {
+                                    var ret = "<button title='去下单' onclick='doUpdate("
+                                        + data + ")'><i class='glyphicon glyphicon-download'></i></button>";
+
+                                    {% for role in request.user.roles.all %}
+                                        {% if role.title == "仓库" or role.title == "采购" %}
+                                            ret = "";
+                                        {% endif %}
+                                    {% endfor %}
+                                    ret = ret + `<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".${data}"></i></button>`;
+                                    ret = ret + "<button title='删除' onclick='doDelete("
+                                        + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
+                                    ret = ret + `<div class="modal fade ${data}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
                                                   <div class="modal-dialog modal-sm" role="document">
                                                     <div class="modal-content">
                                                     <div class="modal-header">
@@ -162,116 +172,117 @@
                                                     </div>
                                                   </div>
                                                 </div>`;
-										return ret;
-									}
-								} ],
-						}));
-		return oTable;
-	}
+                                    return ret;
+                                }
+                            }],
+                    }));
+                return oTable;
+            }
 
-	    $("#btnWorkorderSearch").click(function(){
-            oDataTable.ajax.reload();
+            $("#btnWorkorderSearch").click(function () {
+                oDataTable.ajax.reload();
+            });
+
+            //checkbox全选
+            $("#checkAll").on("click", function () {
+                if ($(this).prop("checked") === true) {
+                    $("input[name='checkList']").prop("checked", $(this).prop("checked"));
+                    $('#example tbody tr').addClass('selected');
+                } else {
+                    $("input[name='checkList']").prop("checked", false);
+                    $('#example tbody tr').removeClass('selected');
+                }
+            });
+
+
+            $("#btnCreate").click(function () {
+                var div = layer.open({
+                    type: 2,
+                    title: '新增商品库存',
+                    shadeClose: false,
+                    maxmin: true,
+                    area: ['800px', '600px'],
+                    content: "{% url 'personal-stockorder-create' %}",
+                    end: function () {
+                        //关闭时做的事情
+                        oDataTable.ajax.reload();
+                    }
+                });
+                layer.full(div)
+            });
+
+            $("#btnRefresh").click(function () {
+                oDataTable.ajax.reload();
+            });
+            // 其他人员编辑
+            $("tbody").on("click", ".btnEdit", function () {
+                let id = $(this).attr("ids");
+                let number = $(this).parent().siblings(".modal-body").find(".store_num").val();
+                $.ajax({
+                    url: "{% url 'personal-stockorder-update' %}",
+                    type: "POST",
+                    data: {"id": id, "number": number, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code) {
+                            layer.alert('更新成功', {icon: 1});
+                            oDataTable.ajax.reload();
+                        } else {
+                            layer.alert('没有权限', {icon: 2});
+                        }
+                    },
+                    error: function () {
+                        layer.alert('没有权限', {icon: 2});
+                    }
+
+                })
+            });
+
+            // 批量删除
+            $("#btnDelete").click(function () {
+                if ($("input[name='checkList']:checked").length == 0) {
+                    layer.msg("请选择要删除的记录");
+                    return;
+                }
+
+                var arrId = new Array();
+                $("input[name='checkList']:checked").each(function () {
+                    //alert($(this).val());
+                    arrId.push($(this).val());
+                });
+
+                sId = arrId.join(',');
+
+                layer.alert('确定删除吗？', {
+                    title: '提示'
+                    , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+                    , time: 0 //不自动关闭
+                    , btn: ['YES', 'NO']
+                    , yes: function (index) {
+                        layer.close(index);
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'adm-equipment:delete' %}",
+                            data: {"id": sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
+                            cache: false,
+                            success: function (msg) {
+                                if (msg.result) {
+                                    layer.alert("操作成功", {icon: 1});
+                                    oDataTable.ajax.reload();
+                                } else {
+                                    //alert(msg.message);
+                                    layer.alert("操作失败", {icon: 2});
+                                }
+                                return;
+                            }
+                        });
+                    }
+                });
+            });
+
+
         });
 
-	//checkbox全选
-    $("#checkAll").on("click", function () {
-        if ($(this).prop("checked") === true) {
-            $("input[name='checkList']").prop("checked", $(this).prop("checked"));
-            $('#example tbody tr').addClass('selected');
-        } else {
-            $("input[name='checkList']").prop("checked", false);
-            $('#example tbody tr').removeClass('selected');
-        }
-    });
-
-
-	$("#btnCreate").click(function() {
-		var div=layer.open({
-			type : 2,
-			title : '新增商品库存',
-			shadeClose : false,
-			maxmin : true,
-			area : [ '800px', '600px' ],
-			content : "{% url 'personal-stockorder-create' %}",
-			end : function() {
-				//关闭时做的事情
-				oDataTable.ajax.reload();
-			}
-		});
-           layer.full(div)
-	});
-
-	$("#btnRefresh").click(function(){
-		oDataTable.ajax.reload();
-	});
-	// 其他人员编辑
-      $("tbody").on("click", ".btnEdit", function () {
-            let id = $(this).attr("ids");
-            let number = $(this).parent().siblings(".modal-body").find(".store_num").val();
-           $.ajax({
-               url:"{% url 'personal-stockorder-update' %}",
-               type:"POST",
-                data:{"id":id, "number": number, csrfmiddlewaretoken: '{{ csrf_token }}'},
-               dataType:'json',
-               success:function(data){
-                if(data.code){
-                    layer.alert('更新成功',{icon: 1});
-                    oDataTable.ajax.reload();
-                }else{
-                    layer.alert('没有权限',{icon: 2});
-                }
-               },
-                error:function () {
-                    layer.alert('没有权限',{icon: 2});
-                }
-
-           })
-      });
-
-	// 批量删除
-	$("#btnDelete").click(function() {
-		if ($("input[name='checkList']:checked").length == 0){
-			layer.msg("请选择要删除的记录");
-			return ;
-		}
-
-		var arrId= new Array();
-		$("input[name='checkList']:checked").each(function(){
-			//alert($(this).val());
-			arrId.push($(this).val());
-		});
-
-		sId=arrId.join(',');
-
-		layer.alert('确定删除吗？', {
-			title:'提示'
-			,icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
-			,time: 0 //不自动关闭
-			,btn: ['YES', 'NO']
-			,yes: function(index){
-			 	layer.close(index);
-			 	$.ajax({
-					type: "POST",
-					url : "{% url 'adm-equipment:delete' %}",
-					data : {"id":sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
-					cache: false,
-					success : function(msg) {
-						if (msg.result){
-							layer.alert("操作成功",{icon:1});
-							oDataTable.ajax.reload();
-						}else{
-							//alert(msg.message);
-							layer.alert("操作失败",{icon:2});
-						}
-						return ;
-					}
-				});
-			}
-		});
-	});
-
-
-});
 
   function back(){
       window.history.back()
@@ -280,57 +291,58 @@ function doDetail(id){
     window.location.href="{% url 'personal-workorder-detail' %}?id="+id;
 }
 
-function doUpdate(id){
-	var div=layer.open({
-		type : 2,
-		title : '创建订单',
-		shadeClose : false,
-    	maxmin : true,
-		area : [ '800px', '600px' ],
-		content : [ "{% url 'personal-stock-update' %}"+'?id='+id],
-		end : function() {
-			//oDataTable.ajax.reload();
-            window.location.reload();
 
-		}
-	});
-    layer.full(div)
-}
+        function doUpdate(id) {
+            var div = layer.open({
+                type: 2,
+                title: '创建订单',
+                shadeClose: false,
+                maxmin: true,
+                area: ['800px', '600px'],
+                content: ["{% url 'personal-stock-update' %}" + '?id=' + id],
+                end: function () {
+                    //oDataTable.ajax.reload();
+                    window.location.reload();
 
-function doDelete(id){
-    layer.alert('确定删除吗？', {
-        title:'提示'
-        ,icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
-        ,time: 0 //不自动关闭
-        ,btn: ['YES', 'NO']
-        ,yes: function(index){
-            layer.close(index);
-            $.ajax({
-                type: "POST",
-                url : "{% url 'personal-stock-delete' %}",
-                data : {"id":id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
-                cache: false,
-                success : function(msg) {
-                    if (msg.result){
-                        layer.alert('删除成功',{icon: 1});
-                        oDataTable.ajax.reload();
-                    }else{
-                        //alert(msg.message);
-                        layer.alert('删除失败，当前状态不能删除', {icon: 4});
-                    }
-                    return ;
+                }
+            });
+            layer.full(div)
+        }
+
+        function doDelete(id) {
+            layer.alert('确定删除吗？', {
+                title: '提示'
+                , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+                , time: 0 //不自动关闭
+                , btn: ['YES', 'NO']
+                , yes: function (index) {
+                    layer.close(index);
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'personal-stock-delete' %}",
+                        data: {"id": id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
+                        cache: false,
+                        success: function (msg) {
+                            if (msg.result) {
+                                layer.alert('删除成功', {icon: 1});
+                                oDataTable.ajax.reload();
+                            } else {
+                                //alert(msg.message);
+                                layer.alert('删除失败，当前状态不能删除', {icon: 4});
+                            }
+                            return;
+                        }
+                    });
                 }
             });
         }
-    });
-}
 
-</script>
-<script>
+    </script>
+    <script>
 
-  $(function () {
-    //Initialize Select2 Elements
-    $(".select2").select2();
-  });
-</script>
+        $(function () {
+            //Initialize Select2 Elements
+            $(".select2").select2();
+        });
+    </script>
 {% endblock %}
