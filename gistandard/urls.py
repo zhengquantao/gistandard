@@ -114,7 +114,8 @@ urlpatterns = [
     url(r'^personal/stockorder_Icrt/edit/', stockorder.StockOrderEditView.as_view(), name="personal-stockorder-edit"),
     # 增加
     url(r'^personal/stockorder_Icrt/list', stockorder.StockOrderListView.as_view(), name="personal-stockorder-list"),
-
+    # 是否已读
+    url(r'^personal/workorder_Icrt/isread', order.OrderIsReadView.as_view(), name="personal-workorder-isread"),
     # 查询列表
     url(r'^personal/stockorder_Icrt/$', stockorder.StockOrderView.as_view(), name="personal-stockorder_Icrt"),
 

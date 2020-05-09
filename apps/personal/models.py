@@ -94,6 +94,8 @@ class Order(models.Model):
     lack_purchase = models.IntegerField(verbose_name='采购缺的数量', null=True, blank=True, default=0)
     fba_store = models.IntegerField(verbose_name='FBA库存数', null=True, blank=True, default=0)
     load_num = models.IntegerField(verbose_name='在路上的数量', null=True, blank=True, default=0)
+    read_choices = (('0', '未读'), ('1', '已读'))
+    is_read = models.CharField(max_length=5, choices=read_choices, default='0', verbose_name='是否已读')
 
 
 class Stock(models.Model):

@@ -335,18 +335,11 @@
         }
 
         function doReturn(id, status) {
-            if ({{ power|safe }}.
-            includes("运营")
-        )
-            {
+            if ({{ power|safe }}.includes("运营")){
                 layer.alert('你无法进行此操作！', {icon: 2});
                 return;
-            }
-            ;
-            if ({{ power|safe }}.
-            includes("运营经理")
-        )
-            {
+            };
+            if ({{ power|safe }}.includes("运营经理")){
                 if (status == 2) {
                     $.post("{% url 'personal-workorder-return' %}", {
                         "id": id,
@@ -365,10 +358,7 @@
         }
 
         function doCommit(id, status) {
-            if ({{ power|safe }}.
-            includes("运营")
-        )
-            {
+            if ({{ power|safe }}.includes("运营")){
                 if (status == 0 || status == 1) {
                     $.post("{% url 'personal-workorder-update' %}", {
                         "id": id,
@@ -385,10 +375,7 @@
                 }
             }
             ;
-            if ({{ power|safe }}.
-            includes("运营经理")
-        )
-            {
+            if ({{ power|safe }}.includes("运营经理")){
                 if (status == 2) {
                     $.post("{% url 'personal-workorder-send' %}", {
                         "id": id,
