@@ -118,7 +118,11 @@
             <div class="box-footer ">
                 <div class="row span7 text-center ">
                     <button type="button" id="btnCancel" class="btn btn-default margin-right ">重置</button>
-                    <button type="button" id="btnSave" class="btn btn-primary margin-right ">保存</button>
+                    {% for role in request.user.roles.all %}
+                        {% if role.title != "运营经理" %}
+                            <button type="button" id="btnSave" class="btn btn-primary margin-right ">保存</button>
+                        {% endif %}
+                    {% endfor %}
                     <button type="button" id="btnSubmit" class="btn btn-info margin-right">提交</button>
                 </div>
             </div>

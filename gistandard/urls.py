@@ -67,6 +67,8 @@ urlpatterns = [
     url(r'^personal/workorder_rec/$', order.WorkOrderView.as_view(), name="personal-workorder_rec"),
     # 采购提交
     url(r'^personal/workorder_rec/execute', order.WorkOrderExecuteView.as_view(), name="personal-workorder-execute"),
+    # 采购批量提交
+    url(r'^personal/workorder_rec/batch_execute', order.WorkOrderBatchExecuteView.as_view(), name="personal-workorder-batch-execute"),
     # 打包订单完成
     url(r'^personal/workorder_rec/finish', order.WorkOrderFinishView.as_view(), name="personal-workorder-finish"),
     url(r'^personal/workorder_rec/upload', order.WorkOrderUploadView.as_view(), name="personal-workorder-upload"),

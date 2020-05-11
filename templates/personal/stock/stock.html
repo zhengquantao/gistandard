@@ -27,7 +27,7 @@
                 <div class="btn-group pull-left">&nbsp</div>
                 <div class="btn-group pull-left">
                     {% for role in request.user.roles.all %}
-                        {% if role.title != "采购" %}
+                        {% if role.title != "采购" and role.title != "运营经理" and role.title != "运营" %}
                             <button type="button" id="btnCreate" class="btn btn-primary ">
                                 <i class="glyphicon glyphicon-plus"></i>新增商品
                             </button>
@@ -37,7 +37,7 @@
                         <a href="{% url 'personal-workorder_compute' %}"><i class="glyphicon glyphicon-glass"></i>购买统计</a>
                     </button>
                     {% for role in request.user.roles.all %}
-                        {% if role.title != "采购" %}
+                        {% if role.title != "采购" and role.title != "运营经理" and role.title != "运营" %}
                             <button type="button" class="btn btn-danger"><i class="glyphicon glyphicon-backward" onclick="back()"></i>返回</button>
                         {% endif %}
                     {% endfor %}
@@ -147,7 +147,11 @@
                                             ret = "";
                                         {% endif %}
                                     {% endfor %}
-                                    ret = ret + `<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".${data}"></i></button>`;
+                                    {% for role in request.user.roles.all %}
+                                        {% if role.title != "运营经理" and role.title != "运营" %}
+                                            ret = ret + `<button title='更改库存'><i class='glyphicon glyphicon-edit' data-toggle="modal" data-target=".${data}"></i></button>`;
+                                        {% endif %}
+                                    {% endfor %}
                                     ret = ret + "<button title='删除' onclick='doDelete("
                                         + data + ")'><i class='glyphicon glyphicon-trash'></i></button>";
                                     ret = ret + `<div class="modal fade ${data}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">

@@ -157,7 +157,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 filters['purchaser__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['3', '4', '7', '8']
                 # ret = dict(data=list(Order.objects.filter(**filters).values("system_sku", "status", "purchase_link", "finish_status", "product_chinese_name", "img").annotate(All_sum=Sum("purchase_quantity"))))
-                sum_data = Order.objects.filter(**filters).values("system_sku", "status", "lack_purchase").annotate(
+                sum_data = Order.objects.filter(**filters).values("id", "system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
                     item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
@@ -345,11 +345,14 @@ class WorkOrderDeleteView(LoginRequiredMixin, View):
     def post(self, request):
         ret = dict(result=False)
         if 'id' in request.POST and request.POST['id']:
-            status = get_object_or_404(Order, pk=request.POST['id']).status
-            if int(status) <= 1:
-                id_list = map(int, request.POST.get('id').split(','))
-                Order.objects.filter(id__in=id_list).delete()
-                ret['result'] = True
+            id_list = map(int, request.POST.get('id').split(','))
+
+            for o_id in id_list:
+                status = get_object_or_404(Order, pk=o_id).status
+                if int(status) <= 1 or int(status) == 8:
+                    order = Order.objects.get(pk=o_id)
+                    order.delete()
+                    ret['result'] = True
         return HttpResponse(json.dumps(ret), content_type='application/json')
 
 
@@ -388,9 +391,15 @@ class WorkOrderUpdateView(LoginRequiredMixin, View):
         res = dict()
         is_list = request.POST.get("list")
         if is_list:
-            Order.objects.filter(id=request.POST.get("id")).update(status=2)
-            res["code"] = 1000
-            return HttpResponse(json.dumps(res), content_type='application/json')
+            if 'id' in request.POST and request.POST['id']:
+                id_list = map(int, request.POST.get('id').split(','))
+                for o_id in id_list:
+                    order = Order.objects.get(pk=o_id)
+                    if int(order.status) < 2:
+                        order.status = '2'
+                        order.save()
+                        res["code"] = 1000
+                return HttpResponse(json.dumps(res), content_type='application/json')
         work_order = get_object_or_404(Order, pk=request.POST['id'])
         if request.POST.get("maternal_sku"):
             MaternalSku.objects.filter(id=work_order.maternal_sku_id).update(sku=request.POST['maternal_sku'])
@@ -439,8 +448,17 @@ class WorkOrderSendView(LoginRequiredMixin, View):
         res = dict(status='fail')
         is_list = request.POST.get("list")
         if is_list:
-            Order.objects.filter(id=request.POST.get("id")).update(status=3, time2=datetime.datetime.now())
-            return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+            if 'id' in request.POST and request.POST['id']:
+                id_list = map(int, request.POST.get('id').split(','))
+                for o_id in id_list:
+                    order = Order.objects.get(pk=o_id)
+                    if int(order.status) < 3:
+                        order.status = '3'
+                        order.time2 = datetime.datetime.now()
+                        order.save()
+                return HttpResponse(json.dumps(res), content_type='application/json')
+            # Order.objects.filter(id=request.POST.get("id")).update(status=3, time2=datetime.datetime.now())
+            # return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
         work_order = get_object_or_404(Order, pk=request.POST['id'])
         work_order_record_form = OrderSendForm(request.POST, instance=work_order)
         if work_order_record_form.is_valid():
@@ -478,10 +496,6 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         system_sku = request.POST.get("system_sku")
         status = request.POST.get("status")
 
-        # if status == "7":  # 问题订单提交过来
-        #     Order.objects.filter(purchaser__id=request.user.id, status='7', system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack=0, lack_warehouse_staff=0)
-        # if status == "8":  # 如果
-        #     pass
         if int(lack) == 0:
             Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack_purchase=0, remark2=remark2, time3=datetime.datetime.now())
         if int(lack) > 0:
@@ -489,6 +503,18 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
+
+class WorkOrderBatchExecuteView(LoginRequiredMixin, View):
+    def post(self, request):
+        data_list = eval(request.POST.get("list"))
+
+        for data in data_list:
+            if int(data['lack']) == 0:
+                Order.objects.filter(purchaser__id=request.user.id, status=data['status'], system_sku=data['system_sku']).update(status="4", order_quantity=data['order_quantity'], lack_purchase=0, time3=datetime.datetime.now())
+            if int(data['lack']) > 0:
+                Order.objects.filter(purchaser__id=request.user.id, status=data['status'], system_sku=data['system_sku']).update(status=8, lack_purchase=data['lack'], order_quantity=data['order_quantity'], time3=datetime.datetime.now())
+            res = {"code": 1000}
+        return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 # 打包仓库
 class WorkOrderFinishView(LoginRequiredMixin, View):
