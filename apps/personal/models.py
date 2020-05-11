@@ -98,7 +98,6 @@ class Order(models.Model):
     is_read = models.CharField(max_length=5, choices=read_choices, default='0', verbose_name='是否已读')
 
 
-
 class Stock(models.Model):
     status_choices = (
         ('0', '订单已退回'), ('1', '新建-保存'), ('2', '提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待确认'), ('5', '订单已完成'))

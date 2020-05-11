@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.min.css' %}">
     <link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
     <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap-datepicker3.min.css' %}">
     <!-- iCheck for checkboxes and radio inputs -->
 {% endblock %}
 
@@ -28,45 +29,55 @@
                             <input type="text" name="number" class="form-control inputText" id="number"
                                    placeholder="请输入订单号">
                         </div>
-                        <div class="form-group searchArea margin-r-5 margin-top-5">
-                            <label>订单状态：</label>
-                            <select class="form-control inputText select2" name="order_status" id="order_status">
-                                <option></option>
-                                {% for status in status_list %}
-                                    <option value={{ status.item }}>{{ status.value }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <button type="button" id="btnWorkorderSearch" class="btn btn-default">
-                            <i class="glyphicon glyphicon-search"></i>查询
-                        </button>
-                        <button type="button" class="btn btn-danger" id="btnDelete">批量删除</button>
+               <div class="form-group searchArea margin-r-5 margin-top-5">
+                <label>订单状态：</label>
+                <select class="form-control inputText select2" name="order_status" id="order_status">
+                    <option></option>
+                    {% for status in status_list %}
+                        <option value={{ status.item }}>{{ status.value }}</option>
+                    {% endfor %}
+                </select>
+              </div>
+              <div class="form-group searchArea margin-r-5 margin-top-5" id="sandbox-container">
+                  <label>时间选择：</label>
+                  <div class="input-daterange input-group inputText" id="datepicker">
+                        <input type="text" class="input-sm form-control" style="padding-right: 1px" name="start" id="start" />
+                        <span class="input-group-addon">to</span>
+                        <input type="text" class="input-sm form-control" style="padding-left: 1px" name="end" id="end" />
+                  </div>
+              </div>
+                <button type="button" id="btnWorkorderSearch" class="btn btn-default">
+                    <i class="glyphicon glyphicon-search"></i>查询
+                </button>
+               <button type="button" class="btn btn-danger" id="btnDelete">批量删除</button>
                         <button type="button" class="btn btn-success" id="btnUpdate">批量提交</button>
-                    </form>
-                </div>
-                <div class="box-body">
-                    <table id="dtbList" class="display" cellspacing="0" width="100%">
-                        <thead>
-                        <tr valign="middle">
-                            <th><input type="checkbox" id="checkAll"></th>
-                            <th>图片</th>
-                            <th>系统SKU</th>
-                            <th>产品中文名</th>
-                            <th class="info">需要数量</th>
-                            <th>采购数量</th>
-                            <th>缺少数量</th>
-                            <th>链接</th>
-                            <th>订单细节</th>
-                            <th>订单状态</th>
-                            <th>备注</th>
-                            <th>操作</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                    <br><br>
-                </div>
+            </form>
+            </div>
+             <div class="box-body">
+                <table id="dtbList" class="display" cellspacing="0" width="100%">
+                    <thead>
+                    <tr valign="middle">
+                        <th><input type="checkbox" id="checkAll"></th>
+                        <th>图片</th>
+                        <th>系统SKU</th>
+                        <th>产品中文名</th>
+                        <th>审核时间</th>
+                        <th class="info">需要数量</th>
+                        <th>采购数量</th>
+                        <th>缺少数量</th>
+                        <th>链接</th>
+                        <th>订单细节</th>
+                        <th>订单状态</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <br><br>
+            </div>
+
                 <div class="modal fade exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -112,6 +123,7 @@
     <script src="{% static 'plugins/datatables/moment.min.js' %}"></script>
     <script src="{% static 'js/plugins/layer/layer.js' %}"></script>
     <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datepicker.min.js' %}"></script>
     <script type="text/javascript"
             src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-flash-1.6.1/b-html5-1.6.1/b-print-1.6.1/datatables.min.js"></script>
     <!-- iCheck 1.0.1 -->
@@ -122,272 +134,290 @@
         });
     </script>
     <script type="text/javascript">
-        var oDataTable = null;
-        $(function () {
-            oDataTable = initTable();
-
-            function initTable() {
-                var oTable = $('#dtbList').DataTable($.extend(true, {},
-                    DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
+  var oDataTable=null;
+  $(function() {
+	oDataTable = initTable();
+	function initTable() {
+		var oTable=$('#dtbList').DataTable($.extend(true,{},
+        DATATABLES_CONSTANT.DATA_TABLES.DEFAULT_OPTION,
+        {
+            ajax : {
+                "url":"{% url 'personal-workorder-list' %}",
+                "data":function ( d ) {
+                    d.main_url="{{ menu.url }}";
+                    d.system_sku=$("#system_sku").val();
+                    d.order_status=$("#order_status").val();
+                    d.start = $("#start").val();
+                    d.end = $("#end").val();
+                }
+        },
+        columns : [
+                    DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
                     {
-                        ajax: {
-                            "url": "{% url 'personal-workorder-list' %}",
-                            "data": function (d) {
-                                d.main_url = "{{ menu.url }}";
-                                d.system_sku = $("#system_sku").val();
-                                d.order_status = $("#order_status").val();
+                        data : "img",
+                        render:function (data, type, row, meta) {
+                            return "<img src='/media/"+data+"' height='60' width='60' class='img-thumbnail'>"
+                        }
+                    },
+                    {
+                        data : "system_sku",
+                    },
+                    {
+                        data : "child",
+                        render: function(data, type, row, meta){
+                            return `${data[0].product_chinese_name}`
+                        }
+                    },
+                    {
+                        data: "child",
+                        render: function(data, type, row, meta){
+                            return `${data[0].time2.replace(/T(\S*)/, "")}`
+                        }
+                    },
+                    {
+                        data : "All_sum",
+                        render : function(data, type, row, meta) {
+                            let ret;
+                            if(row.status==7){ //问题单
+                                ret = `<span class='all'>${row.child[0].lack||row.child[0].lack_warehouse_staff||0}</span>`
+                            }else if(row.status==8){
+                                ret = `<span class='all'>${row.child[0].lack_purchase||0}</span>`
+                            }else{
+                                ret = `<span class='all'>${data}</span>`
                             }
-                        },
-                        columns: [
-                            DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-                            {
-                                data: "img",
-                                render: function (data, type, row, meta) {
-                                    return "<img src='/media/" + data + "' height='60' width='60' class='img-thumbnail'>"
-                                }
-                            },
-                            {
-                                data: "system_sku",
-                            },
-                            {
-                                data: "child",
-                                render: function (data, type, row, meta) {
-                                    return `${data[0].product_chinese_name}`
-                                }
-                            },
-                            {
-                                data: "All_sum",
-                                render: function (data, type, row, meta) {
-                                    let ret;
-                                    if (row.status == 7) { //问题单
-                                        ret = `<span class='all'>${row.child[0].lack || row.child[0].lack_warehouse_staff || 0}</span>`
-                                    } else if (row.status == 8) {
-                                        ret = `<span class='all'>${row.child[0].lack_purchase || 0}</span>`
-                                    } else {
-                                        ret = `<span class='all'>${data}</span>`
-                                    }
-                                    return ret;
-                                }
-                            },
-                            {
-                                data: "order_quantity",
-                                render: function (data, type, row, meta) {
-                                    return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min="0" class='order_quantity' value='${data}'>`
-                                }
-                            },
-                            {
-                                data: "lack_purchase",
-                                render: function (data, type, row, meta) {
-                                    return `<input type='number' style='width: 60px' readonly oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack'  value='${data || 0}'>`
-                                }
-                            },
-                            {
-                                data: "purchase_link",
-                                render: function (data, type, row, meta) {
-                                    return `<button class="btn btn-warning" onclick='toLink("${row.system_sku}")'>采购</button><button class='btn btn-info' onclick='doLink("${row.system_sku}")' data-toggle='modal' data-target='.exampleModal'><i class='glyphicon glyphicon-plus'></i></button>`
-                                }
-                            },
-                            {
-                                data: "child",
-                                render: function (data, type, row, meta) {
-                                    // "system_sku",  "product_chinese_name", "operation__username", "purchase_quantity", "operation_manager__username"
-                                    let dataList = new Array()
-                                    for (let i in data) {
-                                        let itemOrder = `<div style="border: 1px solid #eee;font-size:5px;">名称:${data[i].product_chinese_name};单量:<span style="font-size: 8px">${data[i].purchase_quantity}</span>;申请人:${data[i].operation__name || data[i].operation_manager__name}</div>`;
-                                        dataList.push(itemOrder)
-                                    }
-                                    return dataList.join("");
-                                }
-                            },
-                            {
-                                data: "status",
-                                render: function (data, type, row, meta) {
-                                    if (data == 0) {
-                                        var ret = "<button class='btn btn-danger btn-xs'>订单已退回</button>";
-                                        return ret;
-                                    }
-                                    if (data == 1) {
-                                        var ret = "<button class='btn btn-info btn-xs'>新建-保存</button>";
-                                        return ret;
-                                    }
-                                    if (data == 2) {
-                                        var ret = "<button class='btn btn-warning btn-xs'>提交-等待审批</button>";
-                                        return ret;
-                                    }
-                                    if (data == 3) {
-                                        var ret = "<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
-                                        return ret;
-                                    }
-                                    if (data == 4) {
-                                        var ret = "<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
-                                        return ret;
-                                    }
-                                    if (data == 5) {
-                                        var ret = "<button class='btn btn-info btn-xs'>订单已完成</button>";
-                                        return ret;
-                                    }
-                                    if (data == 6) {
-                                        var ret = "<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
-                                        return ret;
-                                    }
-                                    if (data == 7) {
-                                        var ret = "<button class='btn  btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
-                                        return ret;
-                                    }
-                                    if (data == 8) {
-                                        var ret = "<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
-                                        return ret
-                                    }
-                                }
-                            },
-                            {
-                                data: "child",
-                                render: function (data, type, row, meta) {
-                                    if (data[0].remark || data[0].remark4) {
-                                        let dataObjet = new Object();
-                                        dataObjet.data = data;
-                                        return `<i class="fa fa-commenting-o" style="color:red;cursor: pointer;" onclick='displayData(${JSON.stringify(dataObjet)})' aria-hidden="true"></i>`
-                                    } else {
-                                        return `<i class="fa fa-commenting-o" aria-hidden="true"></i>`
-                                    }
-                                }
-                            },
-                            {
-                                data: "system_sku",
-                                bSortable: "false",
-                                render: function (data, type, row, meta) {
-                                    var ret = "<button title='确认采购' class='commited' status='" + row.status + "' word='"
-                                        + data + "' id="+row.id+"><i class='fa fa-check'></i></button>";
-                                    ret = ret + "<button title='删除' onclick='doDelete("
-                                        + row.id + ")'><i class='glyphicon glyphicon-trash'></i></button>";
-                                    return ret;
-                                }
-                            }
-                        ],
-                    }));
-                return oTable;
-            }
+                            return ret;
+                        }
+                    },
+                    {
+                        data : "order_quantity",
+                        render : function(data, type, row, meta) {
+                            return `<input type='number' style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min="0" class='order_quantity' value='${data}'>`
+                        }
+                    },
+                    {
+                        data : "lack_purchase",
+                        render : function(data, type, row, meta) {
+                            return `<input type='number' style='width: 60px' readonly oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='lack'  value='${data||0}'>`
+                        }
+                    },
+                    {
+                        data: "purchase_link",
+                        render: function (data, type, row, meta) {
+                            return `<button class="btn btn-warning" onclick='toLink("${row.system_sku}")'>采购</button><button class='btn btn-info' onclick='doLink("${row.system_sku}")' data-toggle='modal' data-target='.exampleModal'><i class='glyphicon glyphicon-plus'></i></button>`
+                        }
+                    },
+                    {
+                        data: "child",
+                        render: function (data, type, row, meta) {
+                            // "system_sku",  "product_chinese_name", "operation__username", "purchase_quantity", "operation_manager__username"
 
-            $("#btnWorkorderSearch").click(function () {
-                oDataTable.ajax.reload();
-            });
-            //checkbox全选
-            $("#checkAll").on("click", function () {
-                if ($(this).prop("checked") === true) {
-                    $("input[name='checkList']").prop("checked", $(this).prop("checked"));
-                    $('#example tbody tr').addClass('selected');
-                } else {
-                    $("input[name='checkList']").prop("checked", false);
-                    $('#example tbody tr').removeClass('selected');
-                }
-            });
-
-            $("#btnCreate").click(function () {
-                var div = layer.open({
-                    type: 2,
-                    title: '新增订单',
-                    shadeClose: false,
-                    maxmin: true,
-                    area: ['800px', '600px'],
-                    content: "{% url 'personal-workorder-create' %}",
-                    end: function () {
-                        //关闭时做的事情
-                        oDataTable.ajax.reload();
-                    }
-                });
-                layer.full(div)
-            });
-            $("#btnRefresh").click(function () {
-                oDataTable.ajax.reload();
-            });
-            //批量删除
-            $("#btnDelete").click(function () {
-                if ($("input[name='checkList']:checked").length == 0) {
-                    layer.msg("请选择要删除的记录");
-                    return;
-                }
-                var arrId = new Array();
-                $("input[name='checkList']:checked").each(function () {
-                    //alert($(this).val());
-                    arrId.push($(this).val());
-                });
-                sId = arrId.join(',');
-                layer.alert('确定删除吗？', {
-                    title: '提示'
-                    , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
-                    , time: 0 //不自动关闭
-                    , btn: ['YES', 'NO']
-                    , yes: function (index) {
-                        layer.close(index);
-                        for (j = 0; j < arrId.length; j++) {
-                            let status = $('#'+arrId[j]).attr("status");
-                            if (status > 1 && status !== 8) {
-                                layer.alert("当前订单状态， 不能操作了！", {icon: 2});
-                                return;
+                            if(data.length>1){
+                                let dataObjet = new Object();
+                                dataObjet.data = data;
+                                return `<div>名称:${data[0].product_chinese_name};<br/>单量:<span style="font-size: 8px">${data[0].purchase_quantity}</span>;<br/>申请人:${data[0].operation__name || data[0].operation_manager__name} &nbsp;<span style="color:green;cursor:pointer;" title="更多详情" onclick='displayOrder(${JSON.stringify(dataObjet)})'><i class="fa fa-list" aria-hidden="true"></i></span></div>`
+                            }else{
+                                let dataList = new Array()
+                                for (let i in data) {
+                                    let itemOrder = `<div>名称:${data[i].product_chinese_name};<br/>单量:<span style="font-size: 8px">${data[i].purchase_quantity}</span>;<br/>申请人:${data[i].operation__name || data[i].operation_manager__name}</div>`;
+                                    dataList.push(itemOrder)
+                                }
+                                return dataList.join("");
                             }
                         }
-                        $.ajax({
-                            type: "POST",
-                            url: "{% url 'personal-workorder-delete' %}",
-                            data: {"id": sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
-                            cache: false,
-                            success: function (msg) {
-                                if (msg.result) {
-                                    layer.alert("操作成功", {icon: 1});
-                                    oDataTable.ajax.reload();
-                                } else {
-                                    //alert(msg.message);
-                                    layer.alert("当前订单状态， 不能操作了！", {icon: 2});
-                                }
-                                return;
+                    },
+                    {
+                        data: "status",
+                        render: function (data, type, row, meta) {
+                            if (data == 0) {
+                                var ret = "<button class='btn btn-danger btn-xs'>订单已退回</button>";
+                                return ret;
                             }
-                        });
+                            if (data == 1) {
+                                var ret = "<button class='btn btn-info btn-xs'>新建-保存</button>";
+                                return ret;
+                            }
+                            if (data == 2) {
+                                var ret = "<button class='btn btn-warning btn-xs'>提交-等待审批</button>";
+                                return ret;
+                            }
+                            if (data == 3) {
+                                var ret = "<button class='btn btn-success btn-xs'>已审批-等待采购</button>";
+                                return ret;
+                            }
+                            if (data == 4) {
+                                var ret = "<button class='btn btn-primary btn-xs'>已采购-等待质检</button>";
+                                return ret;
+                            }
+                            if (data == 5) {
+                                var ret = "<button class='btn btn-info btn-xs'>订单已完成</button>";
+                                return ret;
+                            }
+                            if (data == 6) {
+                                var ret = "<button class='btn btn-default btn-xs bg-gray'>已质检-等待打包</button>";
+                                return ret;
+                            }
+                            if(data==7) {
+                            var ret="<button class='btn  btn-xs' style='background-color:#f7807c'>已质检-还需采购</button>";
+                            return ret;
+                        }
+                        if(data==8) {
+                            var ret="<button class='btn btn-danger btn-xs'>已采购-暂时缺货</button>";
+                            return ret
+                        }
+                        }
+                    },
+                    {
+                        data: "child",
+                        render: function (data, type, row, meta) {
+                            if(data[0].remark || data[0].remark4){
+                                let dataObjet = new Object();
+                                let color;
+                                dataObjet.data = data;
+                                if (data[0].is_read == 1){
+                                    color = 'green';
+                                }
+                                return `<i class="fa fa-commenting-o" style="color:${ color || 'red'};cursor: pointer;" onclick='displayData(${JSON.stringify(dataObjet)},this,"${row.system_sku}","${row.status}")' aria-hidden="true"></i>`
+                            }else{
+                                return `<i class="fa fa-commenting-o" aria-hidden="true"></i>`
+                            }
+                        }
+                    },
+                    {
+                        data: "system_sku",
+                        bSortable: "false",
+                        render: function (data, type, row, meta) {
+                            var ret = "<button title='确认采购' class='commited' status='" + row.status + "' word='"
+                                + data + "'><i class='fa fa-check'></i></button>";
+                            ret = ret + "<button title='删除' onclick='doDelete("
+                                + row.id + ")'><i class='glyphicon glyphicon-trash'></i></button>";
+                            return ret;
+                        }
                     }
-                });
-            });
+                ],
+                }));
+        return oTable;
+    }
+    $("#btnWorkorderSearch").click(function () {
+        oDataTable.ajax.reload();
+    });
+    //checkbox全选
+    $("#checkAll").on("click", function () {
+        if ($(this).prop("checked") === true) {
+            $("input[name='checkList']").prop("checked", $(this).prop("checked"));
+            $('#example tbody tr').addClass('selected');
+        } else {
+            $("input[name='checkList']").prop("checked", false);
+            $('#example tbody tr').removeClass('selected');
+        }
+    });
 
-            //批量更新
-            $("#btnUpdate").click(function () {
-                if ($("input[name='checkList']:checked").length == 0) {
-                    layer.msg("请选择要提交的记录");
-                    return;
-                }
 
-                let arrId = new Array();
-                $("input[name='checkList']:checked").each(function () {
-                    //alert($(this).val());
-                    arrId.push($(this).val());
-                });
-
-                let arrWorkorder = new Array();
+    $("#btnCreate").click(function () {
+        var div = layer.open({
+            type: 2,
+            title: '新增订单',
+            shadeClose: false,
+            maxmin: true,
+            area: ['800px', '600px'],
+            content: "{% url 'personal-workorder-create' %}",
+            end: function () {
+                //关闭时做的事情
+                oDataTable.ajax.reload();
+            }
+        });
+        layer.full(div)
+    });
+    $("#btnRefresh").click(function () {
+        oDataTable.ajax.reload();
+    });
+    //批量删除
+    $("#btnDelete").click(function () {
+        if ($("input[name='checkList']:checked").length == 0) {
+            layer.msg("请选择要删除的记录");
+            return;
+        }
+        var arrId = new Array();
+        $("input[name='checkList']:checked").each(function () {
+            //alert($(this).val());
+            arrId.push($(this).val());
+        });
+        sId = arrId.join(',');
+        layer.alert('确定删除吗？', {
+            title: '提示'
+            , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+            , time: 0 //不自动关闭
+            , btn: ['YES', 'NO']
+            , yes: function (index) {
+                layer.close(index);
                 for (j = 0; j < arrId.length; j++) {
-                    order_quantity = $('#'+arrId[j]).parent().parent().find(".order_quantity").val();
-                    if (order_quantity <= 0) {
-                        layer.alert("采购数量不能为空呀！", {icon: 2})
-                        return;
-                    }
-                    status = $('#'+arrId[j]).attr("status");
-                    if (status === "4") {
+                    let status = $('#'+arrId[j]).attr("status");
+                    if (status > 1 && status !== 8) {
                         layer.alert("当前订单状态， 不能操作了！", {icon: 2});
                         return;
                     }
-                    let workorder = new Object();
-                    workorder.order_quantity = order_quantity;
-                    workorder.system_sku = $('#'+arrId[j]).attr("word");
-                    workorder.status = status;
-                    workorder.lack = $('#'+arrId[j]).parent().parent().find(".lack").val();
-
-                    arrWorkorder.push(workorder);
                 }
-                $.post("{% url 'personal-workorder-batch-execute' %}", {
-                        "list": JSON.stringify(arrWorkorder),
-                        "csrfmiddlewaretoken": '{{ csrf_token }}'
-                    }, function (data) {
-                        if (data) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'personal-workorder-delete' %}",
+                    data: {"id": sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
+                    cache: false,
+                    success: function (msg) {
+                        if (msg.result) {
+                            layer.alert("操作成功", {icon: 1});
                             oDataTable.ajax.reload();
+                        } else {
+                            //alert(msg.message);
+                            layer.alert("当前订单状态， 不能操作了！", {icon: 2});
                         }
-                    })
-            });
+                        return;
+                    }
+                });
+            }
+        });
+    });
+
+    //批量更新
+    $("#btnUpdate").click(function () {
+        if ($("input[name='checkList']:checked").length == 0) {
+            layer.msg("请选择要提交的记录");
+            return;
+        }
+
+        let arrId = new Array();
+        $("input[name='checkList']:checked").each(function () {
+            //alert($(this).val());
+            arrId.push($(this).val());
+        });
+
+        let arrWorkorder = new Array();
+        for (j = 0; j < arrId.length; j++) {
+            order_quantity = $('#'+arrId[j]).parent().parent().find(".order_quantity").val();
+            if (order_quantity <= 0) {
+                layer.alert("采购数量不能为空呀！", {icon: 2})
+                return;
+            }
+            status = $('#'+arrId[j]).attr("status");
+            if (status === "4") {
+                layer.alert("当前订单状态， 不能操作了！", {icon: 2});
+                return;
+            }
+            let workorder = new Object();
+            workorder.order_quantity = order_quantity;
+            workorder.system_sku = $('#'+arrId[j]).attr("word");
+            workorder.status = status;
+            workorder.lack = $('#'+arrId[j]).parent().parent().find(".lack").val();
+
+            arrWorkorder.push(workorder);
+        }
+        $.post("{% url 'personal-workorder-batch-execute' %}", {
+                "list": JSON.stringify(arrWorkorder),
+                "csrfmiddlewaretoken": '{{ csrf_token }}'
+            }, function (data) {
+                if (data) {
+                    oDataTable.ajax.reload();
+                }
+            })
+    });
         });
         //点击提交
         $("tbody").on("click", ".commited", function () {
@@ -427,30 +457,62 @@
             //order_quantity.val(all-lack.val())
         });
 
-        function displayData(data) {
+        function displayData(data,node,sku,status) {
+            $.post("{% url 'personal-workorder-isread' %}", {
+                "sku": sku,
+                "status": status,
+                "csrfmiddlewaretoken": '{{ csrf_token }}'
+            }, function (data) {
+                //if (data.code) {
+                //    oDataTable.ajax.reload();
+                //}
+            });
+            node.style.color="green";
             let html = new Array();
             for (let i in data.data) {
                 let dom;
-                if (data.data[i].remark) {
-                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div></div>`
+                if (data.data[i].remark){
+                    dom = `<div class="well" style="border: 1px solid #776e6e;padding: 10px;margin-bottom: 5px;word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div></div>`
                 }
-                if (data.data[i].remark4) {
-                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div>`
+                if (data.data[i].remark4){
+                    dom = `<div class="well" style="border: 1px solid #776e6e;padding: 10px;margin-bottom: 5px;word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div>`
                 }
-                if (data.data[i].remark4 && data.data[i].remark) {
-                    dom = `<div class="well" style="word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div>\n<label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div>`
+                if (data.data[i].remark4 && data.data[i].remark){
+                    dom = `<div class="well" style="border: 1px solid #776e6e;padding: 10px;margin-bottom: 5px;"><div class="well" style="background-color:white;margin-bottom: 5px;border: 1px solid #776e6e;word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].operation__name}(${data.data[i].add_time})</label><strong>:</strong><div>${data.data[i].remark}</div></div><div class="well" style="background-color:white;margin-bottom: 5px; border: 1px solid #776e6e;word-wrap: break-word;word-break: break-all;overflow: hidden;"><label>${data.data[i].warehouse_staff__name}(${data.data[i].time4.replace(/T(\S*)/, '')})</label><strong>:</strong><div>${data.data[i].remark4}</div></div></div>`
                 }
                 html.push(dom)
             }
             layer.open({
-                type: 1
-                , skin: 'layui-layer-lan'
-                , content: '<div style="padding: 1px 2px;">' + html.join("") + '</div>'
-                , btn: '关闭全部'
-                , area: ['520px', '420px']
-                , yes: function () {
-                    layer.closeAll();
-                }
+              type: 1
+              , skin: 'layui-layer-lan'
+              ,content: '<div style="padding: 1px 2px;">'+html.join("")+'</div>'
+              ,btn: '关闭全部'
+                ,area : [ '520px', '420px' ]
+                ,color: "#ddd"
+              ,yes: function(){
+                layer.closeAll();
+              }
+            });
+        }
+
+        function displayOrder(dataObj) {
+            let html = new Array();
+            let dom;
+            let data = dataObj.data;
+            for(let i in data){
+                dom = `<div class="well" style="margin-bottom: 5px;padding: 5px">名称:${data[i].product_chinese_name};单量:<span style="font-size: 8px">${data[i].purchase_quantity}</span>;申请人:${data[i].operation__name || data[i].operation_manager__name}</div>`;
+                html.push(dom)
+            }
+            layer.open({
+              type: 1
+              , skin: 'layui-layer-lan'
+                ,title: '更多详情'+'('+data.length+')'
+              ,content: html.join("")
+              ,btn: '关闭全部'
+                ,area : [ '420px', '350px' ]
+              ,yes: function(){
+                layer.closeAll();
+              }
             });
         }
 
@@ -502,7 +564,7 @@
             $.get("{% url 'personal-stockorder_Icrt' %}", {"system_sku": sku}, function (data) {
                 $('.url-table').text("");
                 for (let i in data.data) {
-                    let html = ``
+                    let html = ``;
                     if (data.data[i].status == "0") {
                         html = `<tr><td><a target=_blank href="${data.data[i].url}" >${data.data[i].url.substring(0, 50)}</a></td><td>${data.data[i].supplier}</td><td><button name="${data.data[i].id}" class="del_url btn btn-danger pull-right">删除</button><button id="${data.data[i].id}" name="${data.data[i].id}" class="edit_url btn btn-primary pull-right">常用</button></td></tr>`;
                     } else {
@@ -577,6 +639,12 @@
                     oDataTable.ajax.reload();
                 }
             })
+        });
+
+        $('#sandbox-container .input-daterange').datepicker({
+            format:'yyyy-mm-dd',
+            clearBtn: true,
+            todayHighlight: true
         });
 
     </script>

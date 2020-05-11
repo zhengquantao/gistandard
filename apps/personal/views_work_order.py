@@ -16,6 +16,7 @@ from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm
     WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm
 from rbac.models import Role
 import datetime
+from dateutil.parser import parse
 
 from utils.toolkit import ToolKit, SendMessage
 
@@ -67,6 +68,17 @@ class WorkOrderListView(LoginRequiredMixin, View):
                   'finish_status', 'status', 'remark', 'id', 'operation__name', 'purchase_link', 'order_quantity',
                   'lack', 'remark2', 'remark4', 'lack_warehouse_staff', 'issued_quantity', 'sales_30', 'fba_store','position', 'lack_purchase']
         filters = dict()
+        start = request.GET.get("start")
+        end = request.GET.get("end")
+        if start and not end:
+            filters['time2__gte'] = start
+        if end and not start:
+            filters['time2__lte'] = end
+        if start and end:
+            old_end_date = parse(end)
+            new_end_date = old_end_date + datetime.timedelta(days=1)
+            new_end_date_to_str = datetime.datetime.strftime(new_end_date, '%Y-%m-%d')
+            filters['time2__range'] = (start, new_end_date_to_str)
 
         if 'system_sku' in request.GET and request.GET['system_sku']:
             filters['system_sku__icontains'] = request.GET['system_sku']
@@ -148,7 +160,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 sum_data = Order.objects.filter(**filters).values("id", "system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
-                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4"))
+                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
                     item["child"] = item_msg
                 ret = dict(data=list(sum_data))
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
@@ -805,6 +817,21 @@ class WorkOrderProjectUploadView(LoginRequiredMixin, View):
         if work_order_project_upload_form.is_valid() and request.user.id == work_order.proposer_id:
             work_order_project_upload_form.save()
             res['status'] = 'success'
+        return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+
+
+class OrderIsReadView(LoginRequiredMixin, View):
+    """
+    采购是否已读备注
+    """
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        sku = request.POST.get("sku")
+        status = request.POST.get("status")
+        Order.objects.filter(system_sku=sku, status=status).update(is_read=1)
+        res = dict()
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 
