@@ -49,7 +49,8 @@ class WorkOrderView(LoginRequiredMixin, View):
             return render(request, 'personal/order/order_bug.html', ret)
         if "仓库" in power:
             ret['status_list'] = status_list[5:]
-            return render(request, 'personal/order/order_pack.html', ret)
+            # return render(request, 'personal/order/order_pack.html', ret)
+            return render(request, 'personal/order/new_order_pack.html', ret)
         if "管理" in power:
             ret['status_list'] = status_list
         ret["power"] = power
@@ -157,10 +158,10 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 filters['purchaser__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['3', '4', '7', '8']
                 # ret = dict(data=list(Order.objects.filter(**filters).values("system_sku", "status", "purchase_link", "finish_status", "product_chinese_name", "img").annotate(All_sum=Sum("purchase_quantity"))))
-                sum_data = Order.objects.filter(**filters).values("id", "system_sku", "status", "lack_purchase").annotate(
+                sum_data = Order.objects.filter(**filters).values("system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
-                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
+                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "id", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
                     item["child"] = item_msg
                 ret = dict(data=list(sum_data))
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
@@ -183,7 +184,26 @@ class WorkOrderListView(LoginRequiredMixin, View):
                         item["child"] = item_msg
                     ret = dict(data=list(sum_data))
                     return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
-                filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['6', '5', '7', '8']
+
+                system_sku = request.GET.get("system_sku")
+                ret = {}
+                if system_sku:
+                    # 库存
+                    good_obj = MaternalSku.objects.filter(sku=system_sku).values("sku", "mater_name", "child_sku", "number")
+                    if good_obj:
+                        user = list(User.objects.filter(Q(roles__title="运营") | Q(roles__title="运营经理")).values("name", "id").order_by("roles__title"))
+                        mater_item = dict(good_obj[0])
+                        child_list = []
+                        for item in good_obj:
+                            child_item = Stock.objects.filter(system_sku=item['child_sku']).values("id", "system_sku", "product_chinese_name", "img", "stock_quantity")
+                            child_dict = dict(child_item[0])
+                            child_dict["number"] = item['number']
+                            child_list.append(child_dict)
+                        mater_item['child'] = child_list
+                        mater_item["user"] = user
+                        ret = dict(data=[mater_item])
+                return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
+
             if "运营经理" in power:
                 filters['operation_manager__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['0', '2', '3']
@@ -504,17 +524,20 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 
+# 采购批量提交
 class WorkOrderBatchExecuteView(LoginRequiredMixin, View):
     def post(self, request):
         data_list = eval(request.POST.get("list"))
-
         for data in data_list:
-            if int(data['lack']) == 0:
-                Order.objects.filter(purchaser__id=request.user.id, status=data['status'], system_sku=data['system_sku']).update(status="4", order_quantity=data['order_quantity'], lack_purchase=0, time3=datetime.datetime.now())
-            if int(data['lack']) > 0:
-                Order.objects.filter(purchaser__id=request.user.id, status=data['status'], system_sku=data['system_sku']).update(status=8, lack_purchase=data['lack'], order_quantity=data['order_quantity'], time3=datetime.datetime.now())
-            res = {"code": 1000}
+            if int(data[2]) == 0:
+                Order.objects.filter(id=data[0], purchaser__id=request.user.id).update(status=4, order_quantity=data[1], lack_purchase=0, time3=datetime.datetime.now())
+
+            if int(data[2]) > 0:
+                Order.objects.filter(id=data[0], purchaser__id=request.user.id,).update(status=8, lack_purchase=data[2], order_quantity=data[1], time3=datetime.datetime.now())
+
+        res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+
 
 # 打包仓库
 class WorkOrderFinishView(LoginRequiredMixin, View):
@@ -531,60 +554,81 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict(status='fail')
         res["code"] = 1000
-        Order.objects.filter(id=request.POST.get("id")).update(order_quantity=request.POST.get("issued_quantity", 0)+request.POST.get("lack", 0)+request.POST.get("more", 0))
-        issued_quantity = request.POST.get("issued_quantity")
-        if request.POST.get("list") == "7":  # 还需采购
-            if int(request.POST.get("lack")) == 0:
-                Order.objects.filter(id=request.POST.get("id")).update(status="5", issued_quantity=issued_quantity, lack=0, time5=datetime.datetime.now())
-                res["code"] = 1004
-            else:
-                res["code"] = 1003
-            return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
-        if request.POST.get("list") == "8":  # 缺货
-            lack_order = Order.objects.filter(id=request.POST.get("id"))
-            if lack_order:
-                # 如果发出与采购相等
-                if lack_order[0].purchase_quantity == issued_quantity:
-                    lack_order.update(status="5", issued_quantity=issued_quantity, time5=datetime.datetime.now(), lack=0)
-                # 不等
-                else:
-                    lack_order.update(status="8", issued_quantity=issued_quantity, lack=request.POST.get("lack"), time5=datetime.datetime.now())
-            res["code"] = 1004
-            return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
-        work_orders = get_object_or_404(Order, pk=request.POST['id'])
-        # 防止其他状态下的提交
-        if work_orders.status != "6":
-            res['code'] = 1001
-            return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
-
-        id = request.POST.get("id")
         issued_quantity = request.POST.get("issued_quantity")
-        lack = request.POST.get("lack")
-        more = request.POST.get("more", 0)
         warehouse_staff = request.POST.get("warehouse_staff")
-        Order.objects.filter(id=id).update(issued_quantity=issued_quantity, lack=lack, warehouse_staff=warehouse_staff, status=5)
-        work_order = Order.objects.filter(id=id)
-        # 总库存数量减
-        if int(request.POST.get("lack", 0)) == 0:
-            is_item = Stock.objects.filter(system_sku=work_order[0].system_sku)
-            if is_item:
-                issued_quantity = work_order[0].issued_quantity
-                is_item.update(stock_quantity=int(is_item[0].stock_quantity)-int(issued_quantity))
-        elif int(request.POST.get("lack", 0)) > 0:
-            # ========打包发现有缺=======
-            Order.objects.filter(id=request.POST['id']).update(status=7, issued_quantity=issued_quantity, lack=request.POST.get("lack"), lack_warehouse_staff=request.POST.get("lack"))
-            # ========
-            res["code"] = 1002
-        else:
-            pass
-        # 个人库存数量统计
-        is_person_number = PersonStore.objects.filter(system_sku=work_order[0].system_sku, user_id=request.user.id)
-        if not is_person_number:
-            PersonStore.objects.create(system_sku=work_order[0].system_sku, product_chinese_name=work_order[0].product_chinese_name, img=work_order[0].img, number=more, user_id=work_order[0].operation_id)
-        else:
-            is_person_number.update(number=int(is_person_number[0].number)+int(more))
+        item_list = eval(issued_quantity)
+        for item in item_list:
+            item_obj = PersonStore.objects.filter(system_sku=item[0], user_id=item[2])
+            item_obj.update(number=int(item_obj[0].number)-int(item[1]))
+            is_order = Order.objects.filter(system_sku=item[0], operation_id=item[2], status__in=[6, 8])
+            if is_order:
+                is_order.update(status=5)
+            StockLog.objects.create("")
+
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+    # def post(self, request):
+    #     res = dict(status='fail')
+    #     res["code"] = 1000
+    #     Order.objects.filter(id=request.POST.get("id")).update(order_quantity=request.POST.get("issued_quantity", 0)+request.POST.get("lack", 0)+request.POST.get("more", 0))
+    #     issued_quantity = request.POST.get("issued_quantity")
+    #     if request.POST.get("list") == "7":  # 还需采购
+    #         if int(request.POST.get("lack")) == 0:
+    #             Order.objects.filter(id=request.POST.get("id")).update(status="5", issued_quantity=issued_quantity, lack=0, time5=datetime.datetime.now())
+    #             res["code"] = 1004
+    #         else:
+    #             res["code"] = 1003
+    #         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+    #     if request.POST.get("list") == "8":  # 缺货
+    #         lack_order = Order.objects.filter(id=request.POST.get("id"))
+    #         if lack_order:
+    #             # 如果发出与采购相等
+    #             if lack_order[0].purchase_quantity == issued_quantity:
+    #                 lack_order.update(status="5", issued_quantity=issued_quantity, time5=datetime.datetime.now(), lack=0)
+    #             # 不等
+    #             else:
+    #                 lack_order.update(status="8", issued_quantity=issued_quantity, lack=request.POST.get("lack"), time5=datetime.datetime.now())
+    #         res["code"] = 1004
+    #         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+    #
+    #     work_orders = get_object_or_404(Order, pk=request.POST['id'])
+    #     # 防止其他状态下的提交
+    #     if work_orders.status != "6":
+    #         res['code'] = 1001
+    #         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
+    #
+    #     id = request.POST.get("id")
+    #     issued_quantity = request.POST.get("issued_quantity")
+    #     lack = request.POST.get("lack")
+    #     more = request.POST.get("more", 0)
+    #     warehouse_staff = request.POST.get("warehouse_staff")
+    #     Order.objects.filter(id=id).update(issued_quantity=issued_quantity, lack=lack, warehouse_staff=warehouse_staff, status=5)
+    #     work_order = Order.objects.filter(id=id)
+    #     # 总库存数量减
+    #     if int(request.POST.get("lack", 0)) == 0:
+    #         # 个人库存数量统计
+    #         is_person_number = PersonStore.objects.filter(system_sku=work_order[0].system_sku, user_id=request.user.id)
+    #         is_person_number.update(number=int(is_person_number[0].number) + int(issued_quantity))
+    #
+    #         # 总库存
+    #         # is_item = Stock.objects.filter(system_sku=work_order[0].system_sku)
+    #         # if is_item:
+    #         #     issued_quantity = work_order[0].issued_quantity
+    #         #     is_item.update(stock_quantity=int(is_item[0].stock_quantity)-int(issued_quantity))
+    #     elif int(request.POST.get("lack", 0)) > 0:
+    #         # ========打包发现有缺=======
+    #         Order.objects.filter(id=request.POST['id']).update(status=7, issued_quantity=issued_quantity, lack=request.POST.get("lack"), lack_warehouse_staff=request.POST.get("lack"))
+    #         # ========
+    #         res["code"] = 1002
+    #     else:
+    #         pass
+    #     # 个人库存数量统计
+    #     is_person_number = PersonStore.objects.filter(system_sku=work_order[0].system_sku, user_id=request.user.id)
+    #     if not is_person_number:
+    #         PersonStore.objects.create(system_sku=work_order[0].system_sku, product_chinese_name=work_order[0].product_chinese_name, img=work_order[0].img, number=more, user_id=work_order[0].operation_id)
+    #     else:
+    #         is_person_number.update(number=int(is_person_number[0].number)+int(more))
+    #     return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 
 # 订单退回
@@ -648,6 +692,17 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
                 good_order.update(status="6", remark4=remark4, warehouse_staff=request.user.id, lack_warehouse_staff=lack_warehouse_staff, position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='6', system_sku=system_sku)
                 # 商品入库
+                # 个人库存数量统计
+                is_person_number = PersonStore.objects.filter(system_sku=good_order[0].system_sku,
+                                                              user_id=good_order[0].operation_id)
+                if not is_person_number:
+                    PersonStore.objects.create(system_sku=good_order[0].system_sku,
+                                               product_chinese_name=good_order[0].product_chinese_name,
+                                               img=good_order[0].img, number=order_quantity, user_id=good_order[0].operation_id)
+                else:
+                    is_person_number.update(number=int(is_person_number[0].number) + int(order_quantity))
+
+                # 总问题 =============
                 is_item = Stock.objects.filter(system_sku=system_sku)
                 if is_item:
                     # 更新库存
@@ -683,6 +738,18 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
                                   position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='7', system_sku=system_sku)
                 # 商品入库
+                # 个人库存数量统计
+                is_person_number = PersonStore.objects.filter(system_sku=good_order[0].system_sku,
+                                                              user_id=good_order[0].operation_id)
+                if not is_person_number:
+                    PersonStore.objects.create(system_sku=good_order[0].system_sku,
+                                               product_chinese_name=good_order[0].product_chinese_name,
+                                               img=good_order[0].img, number=order_quantity,
+                                               user_id=good_order[0].operation_id)
+                else:
+                    is_person_number.update(number=int(is_person_number[0].number) + int(order_quantity))
+
+                # 总============有问题
                 is_item = Stock.objects.filter(system_sku=system_sku)
                 if is_item:
                     is_item.update(stock_quantity=int(is_item[0].stock_quantity) + int(order_quantity))

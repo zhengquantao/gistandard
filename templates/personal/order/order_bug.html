@@ -49,9 +49,7 @@
                 <button type="button" id="btnWorkorderSearch" class="btn btn-default">
                     <i class="glyphicon glyphicon-search"></i>查询
                 </button>
-               <button type="button" class="btn btn-danger" id="btnDelete">批量删除</button>
-                        <button type="button" class="btn btn-success" id="btnUpdate">批量提交</button>
-            </form>
+                    </form>
             </div>
              <div class="box-body">
                 <table id="dtbList" class="display" cellspacing="0" width="100%">
@@ -77,7 +75,6 @@
                 </table>
                 <br><br>
             </div>
-
                 <div class="modal fade exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -165,7 +162,11 @@
                     {
                         data : "child",
                         render: function(data, type, row, meta){
-                            return `${data[0].product_chinese_name}`
+                            let order_id = new Array();
+                            for(let i in data){
+                                order_id.push(data[i].id);
+                            }
+                            return `<input class="order_id hidden" value="${order_id}">${data[0].product_chinese_name}`
                         }
                     },
                     {
@@ -294,6 +295,30 @@
                         }
                     }
                 ],
+            dom: 'Bfrtip',
+            buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                autoFilter: true,
+                                sheetName: 'Exported data',
+                                text: '<button class="btn btn-primary">导出Excel</button>'
+                            },
+                            {
+                                extend: 'print',
+                                sheetName: 'Exported data',
+                                text: '<button class="btn btn-info">打印</button>',
+                                autoPrint: true,
+                                exportOptions: {
+                                    columns: ':visible',
+                                },
+                            },
+                            {
+                                text: '<button class="btn btn-danger" id="btnDelete">批量删除</button>'
+                            },
+                            {
+                                text: '<button class="btn btn-success" id="btnUpdate">批量提交</button>'
+                            },
+                        ]
                 }));
         return oTable;
     }
@@ -339,9 +364,17 @@
         var arrId = new Array();
         $("input[name='checkList']:checked").each(function () {
             //alert($(this).val());
-            arrId.push($(this).val());
+            let order_id = $(this).parent().siblings().children(".order_id").val();
+             let status = $(this).parent().siblings().children(".commited").attr("status");
+             if (status > 1 && status !== 8) {
+                layer.alert("当前订单状态， 不能操作了！", {icon: 2});
+                return;
+             }
+            let new_order_id = order_id.split(",");
+            for(let i in new_order_id){
+                arrId.push(new_order_id[i]);
+            }
         });
-        sId = arrId.join(',');
         layer.alert('确定删除吗？', {
             title: '提示'
             , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
@@ -349,17 +382,10 @@
             , btn: ['YES', 'NO']
             , yes: function (index) {
                 layer.close(index);
-                for (j = 0; j < arrId.length; j++) {
-                    let status = $('#'+arrId[j]).attr("status");
-                    if (status > 1 && status !== 8) {
-                        layer.alert("当前订单状态， 不能操作了！", {icon: 2});
-                        return;
-                    }
-                }
                 $.ajax({
                     type: "POST",
                     url: "{% url 'personal-workorder-delete' %}",
-                    data: {"id": sId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
+                    data: {"id": arrId, "csrfmiddlewaretoken": '{{ csrf_token }}'},
                     cache: false,
                     success: function (msg) {
                         if (msg.result) {
@@ -386,38 +412,32 @@
         let arrId = new Array();
         $("input[name='checkList']:checked").each(function () {
             //alert($(this).val());
-            arrId.push($(this).val());
-        });
-
-        let arrWorkorder = new Array();
-        for (j = 0; j < arrId.length; j++) {
-            order_quantity = $('#'+arrId[j]).parent().parent().find(".order_quantity").val();
-            if (order_quantity <= 0) {
-                layer.alert("采购数量不能为空呀！", {icon: 2})
-                return;
-            }
-            status = $('#'+arrId[j]).attr("status");
-            if (status === "4") {
+            let order_id = $(this).parent().siblings().children(".order_id").val();
+            let status = $(this).parent().siblings().children(".commited").attr("status");
+            let order_quantity = $(this).parent().parent().find(".order_quantity").val();
+            let lack = $(this).parent().parent().find(".lack").val();
+            if (status==4) {
                 layer.alert("当前订单状态， 不能操作了！", {icon: 2});
                 return;
+             }
+            if (order_quantity <= 0) {
+                layer.alert("采购数量不能为空呀！", {icon: 2});
+                return;
             }
-            let workorder = new Object();
-            workorder.order_quantity = order_quantity;
-            workorder.system_sku = $('#'+arrId[j]).attr("word");
-            workorder.status = status;
-            workorder.lack = $('#'+arrId[j]).parent().parent().find(".lack").val();
-
-            arrWorkorder.push(workorder);
-        }
+            let new_order_id = order_id.split(",");
+            for(let i in new_order_id){
+                arrId.push([new_order_id[i], order_quantity, lack]);
+            }
+        });
         $.post("{% url 'personal-workorder-batch-execute' %}", {
-                "list": JSON.stringify(arrWorkorder),
+                "list": arrId,
                 "csrfmiddlewaretoken": '{{ csrf_token }}'
             }, function (data) {
                 if (data) {
                     oDataTable.ajax.reload();
                 }
             })
-    });
+        });
         });
         //点击提交
         $("tbody").on("click", ".commited", function () {

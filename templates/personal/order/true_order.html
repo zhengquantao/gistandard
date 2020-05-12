@@ -304,10 +304,10 @@
         let lack = $(this).parent().parent().find(".lack_warehouse_staff").val();
         let remark2 = $(this).parent().parent().find(".remark2").val();
         let position = $(this).parent().parent().find(".position").val();
-        if(status==="8"){
-           layer.alert("该商品暂时缺货,但已有商品已提交至打包",{icon:1});
-          return;
-        }
+        //if(status==="8"){
+        //   layer.alert("该商品暂时缺货,但已有商品已提交至打包",{icon:1});
+        //  return;
+        //}
 
       $.post("/personal/get_store/", {"system_sku": system_sku, "position": position,"order_quantity": order_quantity, "lack": lack, "remark2": remark2, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(data){
             if (data.code === 1000){
