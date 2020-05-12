@@ -50,7 +50,10 @@ class WorkOrderRecord(models.Model):
 
 
 class MaternalSku(models.Model):
-    sku = models.CharField(max_length=50, verbose_name='系统SKU')
+    sku = models.CharField(max_length=50, verbose_name='母体系统SKU')
+    mater_name = models.CharField(max_length=128, verbose_name='母体中文名', null=True, default='', blank=True)
+    child_sku = models.CharField(max_length=128, verbose_name='子SKU', null=True, default='', blank=True)
+    number = models.IntegerField(null=True, default=0, blank=True, verbose_name='对应数量')
     add_time = models.DateField(default=datetime.datetime.today, verbose_name='创建时间')
 
 
