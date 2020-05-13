@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 
 from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
@@ -246,20 +247,22 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
         res = dict()
         order = Order()
         maternal_sku = request.POST.get('maternal_sku', "")
-        if maternal_sku:
-            maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
-            if not maternal_sku_object:
-                maternal_sku_object = MaternalSku(sku=maternal_sku)
-                maternal_sku_object.save()
-            data = request.POST
-            # 记住旧的方式
-            _mutable = data._mutable
-            # 设置_mutable为True
-            data._mutable = True
-            # 改变你想改变的数据
-            data['maternal_sku'] = maternal_sku_object.id
-            # 恢复_mutable原来的属性
-            data._mutable = _mutable
+        if not maternal_sku:
+            maternal_sku = request.POST.get('system_sku', "")
+        maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
+        if not maternal_sku_object:
+            maternal_sku_object = MaternalSku(sku=maternal_sku)
+            maternal_sku_object.save()
+        data = request.POST
+        # 记住旧的方式
+        _mutable = data._mutable
+        # 设置_mutable为True
+        data._mutable = True
+        # 改变你想改变的数据
+        data['maternal_sku'] = maternal_sku_object.id
+        # 恢复_mutable原来的属性
+        data._mutable = _mutable
+
         order_form = OrderForm(request.POST, request.FILES, instance=order)
         if order_form.is_valid():
             order_form.save()
@@ -516,10 +519,19 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         system_sku = request.POST.get("system_sku")
         status = request.POST.get("status")
 
-        if int(lack) == 0:
-            Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku).update(status="4", order_quantity=order_quantity, lack_purchase=0, remark2=remark2, time3=datetime.datetime.now())
-        if int(lack) > 0:
-            Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku).update(status=8, lack_purchase=lack, order_quantity=order_quantity, remark2=remark2, time3=datetime.datetime.now())
+        order_object_set = Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku)
+        for order_object in order_object_set:
+            if int(lack) == 0:
+                order_object.status = "4"
+                order_object.lack_purchase = 0
+                order_object.order_quantity = int(order_quantity)
+            if int(lack) > 0:
+                order_object.status = "8"
+                order_object.lack_purchase = lack
+                order_object.order_quantity += int(order_quantity)
+            order_object.remark2 = remark2
+            order_object.time3 = datetime.datetime.now()
+            order_object.save()
         res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
@@ -527,6 +539,9 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
 # 采购批量提交
 class WorkOrderBatchExecuteView(LoginRequiredMixin, View):
     def post(self, request):
+        """
+            采购批量提交
+        """
         data_list = eval(request.POST.get("list"))
         for data in data_list:
             if int(data[2]) == 0:
@@ -534,6 +549,19 @@ class WorkOrderBatchExecuteView(LoginRequiredMixin, View):
 
             if int(data[2]) > 0:
                 Order.objects.filter(id=data[0], purchaser__id=request.user.id,).update(status=8, lack_purchase=data[2], order_quantity=data[1], time3=datetime.datetime.now())
+
+        # order_object_set = Order.objects.filter(purchaser__id=request.user.id, status=data['status'], system_sku=data['system_sku'])
+        # for order_object in order_object_set:
+        #     if int(data['lack']) == 0:
+        #         order_object.status = "4"
+        #         order_object.lack_purchase = 0
+        #         order_object.order_quantity = int(data['order_quantity'])
+        #     if int(data['lack']) > 0:
+        #         order_object.status = "8"
+        #         order_object.lack_purchase = data['lack']
+        #         order_object.order_quantity += int(data['order_quantity'])
+        #     order_object.time3 = datetime.datetime.now()
+        #     order_object.save()
 
         res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
@@ -687,7 +715,7 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
         position = request.POST.get("position")
         # 不缺少
         if int(lack_warehouse_staff) == 0:
-            good_order = Order.objects.filter(status='4', system_sku=system_sku)
+            good_order = Order.objects.filter(Q(status='4')|Q(status='8'), system_sku=system_sku)
             if good_order:
                 good_order.update(status="6", remark4=remark4, warehouse_staff=request.user.id, lack_warehouse_staff=lack_warehouse_staff, position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='6', system_sku=system_sku)
