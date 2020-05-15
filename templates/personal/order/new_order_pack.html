@@ -111,7 +111,7 @@
 									    let html = new Array();
 									    for(let i in data){
 									        html.push(
-									            `<div class="well" style="margin-bottom:5px;padding:5px;"><div><span  class="child-sku">${data[i].system_sku}</span>&nbsp;&nbsp;&nbsp;${data[i].product_chinese_name}&nbsp;&nbsp;&nbsp;<span>x<span class="child-number">${data[i].number}</span></span>&nbsp;&nbsp;&nbsp;<input type='number' readonly style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='all-child-number' value='1'></div></div>`
+									            `<div class="well" style="margin-bottom:5px;padding:5px;"><div><span  class="child-sku">${data[i].system_sku}</span>&nbsp;&nbsp;&nbsp;${data[i].product_chinese_name}&nbsp;&nbsp;&nbsp;<span>${data[i].position}</span>&nbsp;&nbsp;&nbsp;<span>x<span class="child-number">${data[i].number}</span></span>&nbsp;&nbsp;&nbsp;<input type='number' readonly style='width: 60px' oninput="value=value.replace(/[^\\d]/g,'')" min='0' class='all-child-number' value='1'></div></div>`
                                             )
                                         }
                                         return html.join("")
@@ -131,7 +131,7 @@
                                 {
 									data : "child",
                                     render : function(data, type, row, meta) {
-                                        return `<button class="btn btn-primary commitd">提交</button>`
+                                        return `<button class="btn btn-primary commited">提交</button>`
                                     }
 								},
                         ],
@@ -231,22 +231,24 @@
 });
   //点击提交
   $("tbody").on("click", ".commited",function () {
-      let child_sku = $(this).parent().parent().find(".child-sku");
-      let all_child_number = $(this).parent().parent().find(".all_child_number");
+      let child_skus = $(this).parent().parent().find(".child-sku");
+      let all_child_number = $(this).parent().parent().find(".all-child-number");
       let person = $(this).parent().parent().find(".select-user").val();
       let data = new Array();
-      for (let i in child_sku){
-          let child_sku = child_sku.eq(i).text();
+      for (let i=0;i<child_skus.length;i++){
+          let child_sku = child_skus.eq(i).text();
           let child_number = all_child_number.eq(i).val();
-            data.push([child_sku, child_number, person]);
+          data.push([child_sku, child_number, person]);
       }
         $.post("/personal/workorder_rec/finish", {
-            "issued_quantity": data,
+            "issued_quantity": JSON.stringify(data),
             "warehouse_staff": {{ request.user.id }},
             "csrfmiddlewaretoken": '{{ csrf_token }}'
         }, function (data) {
             if (data.code===1000){
-                layer.alert("当前订单状态不能更改",{icon:2});
+                layer.alert("提交成功！",{icon:1});
+            }else{
+                layer.alert("提交错误！",{icon:2});
             }
         })
     });
@@ -254,10 +256,8 @@
   //监听数量改变
   $("tbody").on("change", ".mater-number", function(){
       let mater_number = $(this).val();
-      console.log(mater_number, '=========')
       let child_number_list = $(this).parent().parent().find(".child-number");
       let all_child_number_list = $(this).parent().parent().find(".all-child-number");
-      console.log(child_number_list, all_child_number_list, '===========')
       for (let i in child_number_list){
           let num = child_number_list.eq(i).text() * mater_number;
           all_child_number_list.eq(i).val(num);

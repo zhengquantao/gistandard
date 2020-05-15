@@ -54,6 +54,7 @@ class MaternalSku(models.Model):
     mater_name = models.CharField(max_length=128, verbose_name='母体中文名', null=True, default='', blank=True)
     child_sku = models.CharField(max_length=128, verbose_name='子SKU', null=True, default='', blank=True)
     number = models.IntegerField(null=True, default=0, blank=True, verbose_name='对应数量')
+    position = models.CharField(max_length=500, verbose_name='货品位置', blank=True, null=True, default="")
     add_time = models.DateField(default=datetime.datetime.today, verbose_name='创建时间')
 
 

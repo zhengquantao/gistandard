@@ -320,7 +320,7 @@
                     , btn: ['YES', 'NO']
                     , yes: function (index) {
                         layer.close(index);
-                        for (j = 0; j < arrId.length; j++) {
+                        for (let j = 0; j < arrId.length; j++) {
                             let status = $('#'+arrId[j]).attr("status");
                             if (status > 1 && status !== 8) {
                                 layer.alert("当前订单状态， 不能操作了！", {icon: 2});
@@ -382,10 +382,9 @@
                     })
                 };
                 if ({{ power|safe }}.includes("运营经理")){
-                    for (j = 0; j < arrId.length; j++) {
+                    for (let j = 0; j < arrId.length; j++) {
                         status = $('#'+arrId[j]).attr("status");
-                        alert(status);
-                        if (status !== 2) {
+                        if (status != 2) {
                             layer.alert("当前订单状态， 不能操作了！", {icon: 2});
                             return;
                         }

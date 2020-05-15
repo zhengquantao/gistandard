@@ -132,7 +132,12 @@
                                 {
 									data : "All_sum",
                                     render : function(data, type, row, meta) {
-										return "<span class='all'>"+row.child[0].order_quantity+"</span>"
+									    if (row.status == "7"){
+									        return "<span class='all'>"+row.child[0].lack_warehouse_staff+"</span>"
+                                        }else{
+									        return "<span class='all'>"+row.child[0].order_quantity+"</span>"
+                                        }
+
 									}
 								},
                                 {

@@ -190,21 +190,25 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 ret = {}
                 if system_sku:
                     # 库存
-                    good_obj = MaternalSku.objects.filter(sku=system_sku).values("sku", "mater_name", "child_sku", "number")
-                    if good_obj:
-                        user = list(User.objects.filter(Q(roles__title="运营") | Q(roles__title="运营经理")).values("name", "id").order_by("roles__title"))
-                        mater_item = dict(good_obj[0])
-                        child_list = []
-                        for item in good_obj:
-                            child_item = Stock.objects.filter(system_sku=item['child_sku']).values("id", "system_sku", "product_chinese_name", "img", "stock_quantity")
-                            child_dict = dict(child_item[0])
-                            child_dict["number"] = item['number']
-                            child_list.append(child_dict)
-                        mater_item['child'] = child_list
-                        mater_item["user"] = user
-                        ret = dict(data=[mater_item])
+                    mater_sku_list = MaternalSku.objects.filter(sku__contains=system_sku).values("sku").distinct()
+                    sku_list = list()
+                    for item in mater_sku_list:
+                        good_obj = MaternalSku.objects.filter(sku=item['sku']).values("sku", "mater_name", "child_sku", "number")
+                        if good_obj:
+                            user = list(User.objects.filter(Q(roles__title="运营") | Q(roles__title="运营经理")).values("name", "id").order_by("roles__title"))
+                            mater_item = dict(good_obj[0])
+                            child_list = []
+                            for item in good_obj:
+                                child_item = Stock.objects.filter(system_sku=item['child_sku']).values("id", "system_sku", "product_chinese_name", "img", "stock_quantity", "position")
+                                child_dict = dict(child_item[0])
+                                child_dict["number"] = item['number']
+                                child_list.append(child_dict)
+                            mater_item['child'] = child_list
+                            mater_item["user"] = user
+                            sku_list.append(mater_item)
+                    ret = dict(data=sku_list)
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
-
+                # filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['5', '6', '7','8']
             if "运营经理" in power:
                 filters['operation_manager__id'] = user.id
                 filters['status__in'] = request.GET['order_status'] if request.GET['order_status'] else ['0', '2', '3']
@@ -247,12 +251,18 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
         res = dict()
         order = Order()
         maternal_sku = request.POST.get('maternal_sku', "")
+        child_name = request.POST.get("child_name", "")
+        child_number = request.POST.get("child_number", 1)
         if not maternal_sku:
             maternal_sku = request.POST.get('system_sku', "")
-        maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
-        if not maternal_sku_object:
-            maternal_sku_object = MaternalSku(sku=maternal_sku)
-            maternal_sku_object.save()
+            child_name = request.POST.get("product_chinese_name", "")
+
+        # maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
+        # if not maternal_sku_object:
+        #     maternal_sku_object = MaternalSku(sku=maternal_sku)
+        #     maternal_sku_object.save()
+        maternal_sku_object = MaternalSku(sku=maternal_sku, child_sku=request.POST.get('system_sku', ""), mater_name=child_name, number=child_number)
+        maternal_sku_object.save()
         data = request.POST
         # 记住旧的方式
         _mutable = data._mutable
@@ -518,7 +528,23 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         remark2 = request.POST.get("remark2")
         system_sku = request.POST.get("system_sku")
         status = request.POST.get("status")
+        lists = request.POST.get("list")
+        res = {"code": 1000}
+        if lists:
+            data_list = eval(lists)
+            for data in data_list:
+                if int(data[2]) == 0:
+                    Order.objects.filter(id=data[0], purchaser__id=request.user.id).update(status=4, order_quantity=data[1],
+                                                                                           lack_purchase=0,
+                                                                                           time3=datetime.datetime.now())
 
+                if int(data[2]) > 0:
+                    Order.objects.filter(id=data[0], purchaser__id=request.user.id, ).update(status=8,
+                                                                                             lack_purchase=data[2],
+                                                                                             order_quantity=data[1],
+                                                                                             time3=datetime.datetime.now())
+
+            return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
         order_object_set = Order.objects.filter(purchaser__id=request.user.id, status=status, system_sku=system_sku)
         for order_object in order_object_set:
             if int(lack) == 0:
@@ -532,7 +558,6 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
             order_object.remark2 = remark2
             order_object.time3 = datetime.datetime.now()
             order_object.save()
-        res = {"code": 1000}
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
 
 
@@ -587,12 +612,15 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
         warehouse_staff = request.POST.get("warehouse_staff")
         item_list = eval(issued_quantity)
         for item in item_list:
+            # 个人库存
             item_obj = PersonStore.objects.filter(system_sku=item[0], user_id=item[2])
             item_obj.update(number=int(item_obj[0].number)-int(item[1]))
+            # 总库存
+            # stock_obj = Stock.objects.filter(system_sku=item)
+            # stock_obj.update(stock_quantity=int(stock_obj[0].stock_quantity)-int(item[1]))
             is_order = Order.objects.filter(system_sku=item[0], operation_id=item[2], status__in=[6, 8])
             if is_order:
                 is_order.update(status=5)
-            StockLog.objects.create("")
 
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
     # def post(self, request):
@@ -635,8 +663,8 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
     #     # 总库存数量减
     #     if int(request.POST.get("lack", 0)) == 0:
     #         # 个人库存数量统计
-    #         is_person_number = PersonStore.objects.filter(system_sku=work_order[0].system_sku, user_id=request.user.id)
-    #         is_person_number.update(number=int(is_person_number[0].number) + int(issued_quantity))
+    #         is_person_number = PersonStore.objects.filter(system_sku=work_order[0].system_sku, user_id=work_order[0].operation_id)
+    #         is_person_number.update(number=int(is_person_number[0].number) - int(issued_quantity))
     #
     #         # 总库存
     #         # is_item = Stock.objects.filter(system_sku=work_order[0].system_sku)
@@ -720,36 +748,37 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
                 good_order.update(status="6", remark4=remark4, warehouse_staff=request.user.id, lack_warehouse_staff=lack_warehouse_staff, position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='6', system_sku=system_sku)
                 # 商品入库
-                # 个人库存数量统计
-                is_person_number = PersonStore.objects.filter(system_sku=good_order[0].system_sku,
-                                                              user_id=good_order[0].operation_id)
-                if not is_person_number:
-                    PersonStore.objects.create(system_sku=good_order[0].system_sku,
-                                               product_chinese_name=good_order[0].product_chinese_name,
-                                               img=good_order[0].img, number=order_quantity, user_id=good_order[0].operation_id)
-                else:
-                    is_person_number.update(number=int(is_person_number[0].number) + int(order_quantity))
+                for item in good_order:
+                    # 个人库存数量统计
+                    is_person_number = PersonStore.objects.filter(system_sku=item.system_sku,
+                                                                  user_id=item.operation_id)
+                    if not is_person_number:
+                        PersonStore.objects.create(system_sku=item.system_sku, other=item.position,
+                                                   product_chinese_name=item.product_chinese_name,
+                                                   img=item.img, number=item.purchase_quantity, user_id=item.operation_id)
+                    else:
+                        is_person_number.update(number=int(is_person_number[0].number) + int(item.purchase_quantity))
 
-                # 总问题 =============
-                is_item = Stock.objects.filter(system_sku=system_sku)
-                if is_item:
-                    # 更新库存
-                    is_item.update(stock_quantity=int(is_item[0].stock_quantity) + int(order_quantity))
-                    # 放入日志表中
-                    is_item = Stock.objects.filter(system_sku=system_sku)
-                    StockLog.objects.create(user=request.user.name, after_number=is_item[0].stock_quantity, before_number=int(is_item[0].stock_quantity)-int(order_quantity), sku=system_sku, sku_name=is_item[0].product_chinese_name, content="更改")
-                else:
-                    # 新建库存
-                    Stock.objects.create(stock_quantity=order_quantity,
-                                         system_sku=system_sku, order_number=good_order[0].order_number,
-                                         purchase_link=good_order[0].purchase_link,
-                                         product_chinese_name=good_order[0].product_chinese_name, img=good_order[0].img,
-                                         position=position, comparison_code=good_order[0].comparison_code)
-                    # 放入日志表中
-                    is_item = Stock.objects.filter(system_sku=system_sku)
-                    StockLog.objects.create(user=request.user.name, after_number=is_item[0].stock_quantity,
-                                            before_number=0,
-                                            sku=system_sku, sku_name=is_item[0].product_chinese_name, content="更改")
+                    # 总库存
+                    is_item = Stock.objects.filter(system_sku=item.system_sku)
+                    if is_item:
+                        # 更新库存
+                        is_item.update(stock_quantity=int(is_item[0].stock_quantity) + int(order_quantity))
+                        # 放入日志表中
+                        is_item = Stock.objects.filter(system_sku=system_sku)
+                        StockLog.objects.create(user=request.user.name, after_number=is_item[0].stock_quantity, before_number=int(is_item[0].stock_quantity)-int(order_quantity), sku=system_sku, sku_name=is_item[0].product_chinese_name, content="更改")
+                    else:
+                        # 新建库存
+                        Stock.objects.create(stock_quantity=order_quantity,
+                                             system_sku=system_sku, order_number=good_order[0].order_number,
+                                             purchase_link=good_order[0].purchase_link,
+                                             product_chinese_name=good_order[0].product_chinese_name, img=good_order[0].img,
+                                             position=position, comparison_code=good_order[0].comparison_code)
+                        # 放入日志表中
+                        is_item = Stock.objects.filter(system_sku=system_sku)
+                        StockLog.objects.create(user=request.user.name, after_number=is_item[0].stock_quantity,
+                                                before_number=0,
+                                                sku=system_sku, sku_name=is_item[0].product_chinese_name, content="更改")
 
                 res = {"code": 1000}
             else:
@@ -770,7 +799,7 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
                 is_person_number = PersonStore.objects.filter(system_sku=good_order[0].system_sku,
                                                               user_id=good_order[0].operation_id)
                 if not is_person_number:
-                    PersonStore.objects.create(system_sku=good_order[0].system_sku,
+                    PersonStore.objects.create(system_sku=good_order[0].system_sku, other=good_order[0].position,
                                                product_chinese_name=good_order[0].product_chinese_name,
                                                img=good_order[0].img, number=order_quantity,
                                                user_id=good_order[0].operation_id)

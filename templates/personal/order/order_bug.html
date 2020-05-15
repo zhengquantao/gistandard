@@ -429,16 +429,14 @@
                 arrId.push([new_order_id[i], order_quantity, lack]);
             }
         });
-        $.post("{% url 'personal-workorder-batch-execute' %}", {
-                "list": arrId,
-                "csrfmiddlewaretoken": '{{ csrf_token }}'
-            }, function (data) {
-                if (data) {
-                    oDataTable.ajax.reload();
-                }
-            })
-        });
-        });
+
+        $.post("{% url 'personal-workorder-execute' %}",{"list": JSON.stringify(arrId), "csrfmiddlewaretoken": "{{ csrf_token }}"}, function (data) {
+            if (data) {
+                oDataTable.ajax.reload();
+            }
+        })
+    });
+  });
         //点击提交
         $("tbody").on("click", ".commited", function () {
             let system_sku = $(this).attr("word");
