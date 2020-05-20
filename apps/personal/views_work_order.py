@@ -14,10 +14,12 @@ from utils.mixin_utils import LoginRequiredMixin
 from rbac.models import Menu
 from .models import WorkOrder, WorkOrderRecord, Order, MaternalSku, Stock, SkuToUrl, StockLog, PersonStore
 from .forms import WorkOrderCreateForm, WorkOrderUpdateForm, WorkOrderRecordForm, WorkOrderRecordUploadForm, \
-    WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm
+    WorkOrderProjectUploadForm, OrderForm, OrderBackForm, OrderSendForm, OrderBugForm, OrderFinallyForm, CreateMater, UpdateMaterImage
 from rbac.models import Role
 import datetime
+import os
 from dateutil.parser import parse
+from django.db import transaction
 
 from utils.toolkit import ToolKit, SendMessage
 
@@ -162,7 +164,7 @@ class WorkOrderListView(LoginRequiredMixin, View):
                 sum_data = Order.objects.filter(**filters).values("system_sku", "status", "lack_purchase").annotate(
                         All_sum=Sum("purchase_quantity")).order_by("-add_time")
                 for item in sum_data:
-                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "id", "product_chinese_name", "operation__name", "purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
+                    item_msg = list(Order.objects.filter(system_sku=item.get("system_sku"), status=item.get("status")).values("system_sku", "id", "product_chinese_name", "operation__name", "img","purchase_quantity", "operation_manager__name", "lack_purchase", "lack", "lack_warehouse_staff", "remark", "warehouse_staff__name", "remark4", "add_time", "time4", "is_read", "time2"))
                     item["child"] = item_msg
                 ret = dict(data=list(sum_data))
                 return HttpResponse(json.dumps(ret, cls=DjangoJSONEncoder), content_type='application/json')
@@ -227,6 +229,12 @@ class WorkOrderListView(LoginRequiredMixin, View):
 # 创建
 class WorkOrderCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        is_quick = request.GET.get("quick")
+        mater_sku = request.GET.get("mater_sku")
+        # 查询子SKU
+        if mater_sku:
+            res = dict(data=list(MaternalSku.objects.filter(sku=mater_sku).values("child_sku", "number", "child_img", "child_name", "content")))
+            return HttpResponse(json.dumps(res), content_type='application/json')
         type_list = []
         for order_type in Order.finish_status_choices:
             type_dict = dict(item=order_type[0], value=order_type[1])
@@ -239,30 +247,106 @@ class WorkOrderCreateView(LoginRequiredMixin, View):
             number = ""
         new_number = ToolKit.bulidNumber('SX', 9, number)
         purchase_name = User.objects.filter(roles__title="采购").values('id', 'name')
+        maternal_sku = MaternalSku.objects.values("sku", "mater_name").distinct()
         ret = {
             'type_list': type_list,
             'operation_manager': operation_manager,
             'new_number': new_number,
-            "purchase_list": purchase_name
+            "purchase_list": purchase_name,
+            'maternal_sku': maternal_sku
         }
+        if is_quick:
+            return render(request, 'personal/order/quick_order_create.html', ret)
         return render(request, 'personal/order/order_create.html', ret)
 
     def post(self, request):
         res = dict()
         order = Order()
         maternal_sku = request.POST.get('maternal_sku', "")
-        child_name = request.POST.get("child_name", "")
-        child_number = request.POST.get("child_number", 1)
+        mater_name = request.POST.get("mater_name", "")
+        child_number = request.POST.get("child_number", "1")
+        child_sku = request.POST.get('system_sku', "")
+        # 创建子SKU
+        create_child = request.POST.get("createChild")
+        compose = request.POST.get("compose")
+        if create_child:
+            res = {"status": "success"}
+            try:
+                # MaternalSku.objects.create(sku=request.POST.get("mater_sku"), child_img=request.POST.get("modal_child_img"), child_sku=request.POST.get("modal_child_sku"), child_name=request.POST.get("modal_child_name"), number=request.POST.get("modal_child_number"), content=request.POST.get("modal_child_content"))
+                work_mater_form = CreateMater(request.POST, request.FILES, instance=MaternalSku())
+                work_mater_form.save()
+            except:
+                res["status"] = "fail"
+            return HttpResponse(json.dumps(res), content_type='application/json')
+        # 组合产品新建
+        if compose == "1":
+            if maternal_sku:
+                mater_list = MaternalSku.objects.filter(sku=maternal_sku)
+                if mater_list:
+                    # 保存母体图片
+                    item_mater_img = request.FILES.get("mater_img")
+                    try:
+                        img_name = item_mater_img.name
+                        img_path = os.path.join("media", "image", img_name)
+                        with open(img_path, 'wb') as w:
+                            for i in item_mater_img.chunks():
+                                w.write(i)
+                            w.close()
+                    except:
+                        item_mater_img = ""
+                    for item in mater_list:
+                        number = int(item.number)*int(request.POST.get("purchase_quantity"))
+                        child_sku = item.child_sku
+                        child_name = item.child_name
+                        child_img = item.child_img
+                        # 增加到Order中
+                        Order.objects.create(order_number=request.POST.get("order_number"), maternal_sku_id=item.id, system_sku=child_sku,
+                                             sales_30=request.POST.get("sales_30"), fba_store=request.POST.get("fba_store"),
+                                             operation_id=request.POST.get("operation"), status=request.POST.get("status"),
+                                             purchaser_id=request.POST.get("purchaser"), img=child_img, product_chinese_name=child_name,
+                                             operation_manager_id=request.POST.get("operation_manager"), purchase_quantity=number,
+                                             remark=request.POST.get("remark"), comparison_code=request.POST.get("comparison_code"))
+                        # 更改母体中的数据
+                        MaternalSku.objects.filter(id=item.id).update(mater_name=request.POST.get("mater_name"), mater_img=img_path)
+                    return HttpResponse(json.dumps(res), content_type='application/json')
+                else:
+                    pass
+        # 组合产品从库存扣
+        if compose == "2":
+            if maternal_sku:
+                mater_list = MaternalSku.objects.filter(sku=maternal_sku)
+                if mater_list:
+                    for item in mater_list:
+                        number = int(item.number) * int(request.POST.get("purchase_quantity"))
+                        child_sku = item.child_sku
+                        child_name = item.child_name
+                        child_img = item.child_img
+                        # 增加到Order中
+                        Order.objects.create(order_number=request.POST.get("order_number"), maternal_sku_id=item.id,
+                                             system_sku=child_sku,
+                                             sales_30=request.POST.get("sales_30"),
+                                             fba_store=request.POST.get("fba_store"),
+                                             operation_id=request.POST.get("operation"),
+                                             status=request.POST.get("status"),
+                                             purchaser_id=request.POST.get("purchaser"), img=child_img,
+                                             product_chinese_name=child_name,
+                                             operation_manager_id=request.POST.get("operation_manager"),
+                                             purchase_quantity=number,
+                                             purchase_status=request.POST.get("purchase_status"),
+                                             remark=request.POST.get("remark"),
+                                             comparison_code=request.POST.get("comparison_code"))
+                    res["status"] = 'submit'
+                    return HttpResponse(json.dumps(res), content_type='application/json')
+                else:
+                    return HttpResponse("网络超时！！")
+        # 正常成品
         if not maternal_sku:
             maternal_sku = request.POST.get('system_sku', "")
-            child_name = request.POST.get("product_chinese_name", "")
-
-        # maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku).first()
-        # if not maternal_sku_object:
-        #     maternal_sku_object = MaternalSku(sku=maternal_sku)
-        #     maternal_sku_object.save()
-        maternal_sku_object = MaternalSku(sku=maternal_sku, child_sku=request.POST.get('system_sku', ""), mater_name=child_name, number=child_number)
-        maternal_sku_object.save()
+            mater_name = request.POST.get("product_chinese_name", "")
+        maternal_sku_object = MaternalSku.objects.filter(sku=maternal_sku, child_sku=child_sku).first()
+        if not maternal_sku_object:
+            maternal_sku_object = MaternalSku(sku=maternal_sku, child_name=mater_name, child_sku=child_sku, mater_name=mater_name, number=int(child_number))
+            maternal_sku_object.save()
         data = request.POST
         # 记住旧的方式
         _mutable = data._mutable
@@ -489,6 +573,9 @@ class WorkOrderSendView(LoginRequiredMixin, View):
                         order.status = '3'
                         order.time2 = datetime.datetime.now()
                         order.save()
+                    if order.purchase_status == "1":
+                        order.status = '6'
+                        order.save()
                 return HttpResponse(json.dumps(res), content_type='application/json')
             # Order.objects.filter(id=request.POST.get("id")).update(status=3, time2=datetime.datetime.now())
             # return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
@@ -497,6 +584,8 @@ class WorkOrderSendView(LoginRequiredMixin, View):
         if work_order_record_form.is_valid():
             if request.user.id == work_order.operation_manager_id:
                 work_order_record_form.save()
+                if work_order.purchase_status == "1":
+                    Order.objects.filter(id=request.POST['id']).update(status=6)
                 res['status'] = 'success'
                 try:
                     SendMessage.send_workorder_email(request.POST['order_number'])
@@ -530,7 +619,7 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
         status = request.POST.get("status")
         lists = request.POST.get("list")
         res = {"code": 1000}
-        if lists:
+        if lists:  # 批量提交的
             data_list = eval(lists)
             for data in data_list:
                 if int(data[2]) == 0:
@@ -554,7 +643,7 @@ class WorkOrderExecuteView(LoginRequiredMixin, View):
             if int(lack) > 0:
                 order_object.status = "8"
                 order_object.lack_purchase = lack
-                order_object.order_quantity += int(order_quantity)
+                order_object.order_quantity = int(order_quantity)
             order_object.remark2 = remark2
             order_object.time3 = datetime.datetime.now()
             order_object.save()
@@ -607,21 +696,32 @@ class WorkOrderFinishView(LoginRequiredMixin, View):
     def post(self, request):
         res = dict(status='fail')
         res["code"] = 1000
-
+        res["data"] = ''
         issued_quantity = request.POST.get("issued_quantity")
         warehouse_staff = request.POST.get("warehouse_staff")
         item_list = eval(issued_quantity)
-        for item in item_list:
-            # 个人库存
-            item_obj = PersonStore.objects.filter(system_sku=item[0], user_id=item[2])
-            item_obj.update(number=int(item_obj[0].number)-int(item[1]))
-            # 总库存
-            # stock_obj = Stock.objects.filter(system_sku=item)
-            # stock_obj.update(stock_quantity=int(stock_obj[0].stock_quantity)-int(item[1]))
-            is_order = Order.objects.filter(system_sku=item[0], operation_id=item[2], status__in=[6, 8])
-            if is_order:
-                is_order.update(status=5)
-
+        try:
+            with transaction.atomic():
+                for item in item_list:
+                    # 个人库存
+                    item_obj = PersonStore.objects.filter(system_sku=item[0], user_id=item[2])
+                    if int(item_obj[0].number)-int(item[1]) >= 0:
+                        # 个人更新
+                        item_obj.update(number=int(item_obj[0].number)-int(item[1]))
+                        # 总库存
+                        stock_obj = Stock.objects.filter(system_sku=item[0])
+                        stock_obj.update(stock_quantity=int(stock_obj[0].stock_quantity)-int(item[1]))
+                        # 订单状态更改
+                        is_order = Order.objects.filter(system_sku=item[0], operation_id=item[2], status__in=[6, 8])
+                        if is_order:
+                            is_order.update(status=5)
+                    else:
+                        res["data"] = {"number": item_obj[0].number, "system_sku": item[0]}
+                        # raise ValueError("数量不足")
+                        # 故意让其报错 让保持数据一直性
+                        item_obj.update(number=int(item_obj[0].numbers) - int(item[2]))
+        except:
+            res["code"] = 1004
         return HttpResponse(json.dumps(res, cls=DjangoJSONEncoder), content_type='application/json')
     # def post(self, request):
     #     res = dict(status='fail')
@@ -735,6 +835,9 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
         return render(request, 'personal/order/true_order.html', ret)
 
     def post(self, request):
+        """
+        可以更简洁～～～
+        """
         # 总数量
         order_quantity = request.POST.get("order_quantity", 0)
         lack_warehouse_staff = request.POST.get("lack", 0)
@@ -795,18 +898,19 @@ class WorkOrderTrueView(LoginRequiredMixin, View):
                                   position=position, time4=datetime.datetime.now())
                 good_order = Order.objects.filter(status='7', system_sku=system_sku)
                 # 商品入库
-                # 个人库存数量统计
-                is_person_number = PersonStore.objects.filter(system_sku=good_order[0].system_sku,
-                                                              user_id=good_order[0].operation_id)
-                if not is_person_number:
-                    PersonStore.objects.create(system_sku=good_order[0].system_sku, other=good_order[0].position,
-                                               product_chinese_name=good_order[0].product_chinese_name,
-                                               img=good_order[0].img, number=order_quantity,
-                                               user_id=good_order[0].operation_id)
-                else:
-                    is_person_number.update(number=int(is_person_number[0].number) + int(order_quantity))
+                for item in good_order:
+                    # 个人库存数量统计
+                    is_person_number = PersonStore.objects.filter(system_sku=item.system_sku,
+                                                                  user_id=item.operation_id)
+                    if not is_person_number:
+                        PersonStore.objects.create(system_sku=item.system_sku, other=item.position,
+                                                   product_chinese_name=item.product_chinese_name,
+                                                   img=item.img, number=order_quantity,
+                                                   user_id=item.operation_id)
+                    else:
+                        is_person_number.update(number=int(is_person_number[0].number) + int(item.purchase_quantity))
 
-                # 总============有问题
+                # 总数量============有问题
                 is_item = Stock.objects.filter(system_sku=system_sku)
                 if is_item:
                     is_item.update(stock_quantity=int(is_item[0].stock_quantity) + int(order_quantity))

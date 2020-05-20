@@ -205,3 +205,23 @@ class StockOrderForm(forms.ModelForm):
 #             "operation_manager": {"required": "请输入审批人"},
 #             "operation": {"required": "请输入申请人"},
 #         }
+
+
+class CreateMater(forms.ModelForm):
+    """
+        建立母体表
+    """
+
+    class Meta:
+        model = MaternalSku
+        fields = ["sku", "child_sku", "number", "child_name", "child_img", "content"]
+
+
+class UpdateMaterImage(forms.ModelForm):
+    """
+        更新母体名字
+    """
+
+    class Meta:
+        model = MaternalSku
+        fields = ["mater_img", "mater_name"]

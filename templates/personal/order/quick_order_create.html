@@ -1,0 +1,394 @@
+{% extends 'base-layer.html' %}
+{% load staticfiles %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/plugins/layer/skin/layer.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap-datetimepicker.min.css' %}">
+
+{% endblock %}
+{% block main %}
+    <div class="box box-danger">
+        <form class="form-horizontal" id="addForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" name='operation' value="{{ request.user.id }}"/>
+            <div class="box-body">
+                <fieldset>
+                    <legend>
+                        <div class="form-group has-feedback">
+                            <div class="col-sm-8"><a class="end_product" href="{% url 'personal-workorder-create' %}">成品</a><small>|</small><a href="{% url 'personal-workorder-create' %}?quick=1" class="compose">组合产品</a></div>
+                            <div class="col-sm-1 col-sm-offset-3 text-right "><button type="button" id="close-html" title="关闭">X</button></div>
+                        </div>
+                    </legend>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">订单号</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="order_number" readonly="readonly"
+                                   value="{{ new_number }}" type="text"/>
+                        </div>
+                        <label class="col-sm-2 control-label">审批人</label>
+                        <div class="col-sm-3">
+                            <span class="form-control" readonly="readonly">{{ operation_manager.name }}</span>
+                            <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}"
+                                   type="hidden"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+
+                        <label class="col-sm-2 control-label">母体中文名</label>
+                        <div class="col-sm-3">
+                            <input class="form-control mater_name" name="mater_name" value=""
+                                   type="text"/>
+                        </div>
+                        <button type="button" class="btn btn-success addMater" title="增加">添加子SKU信息</button>
+                        <label class="col-sm-2 control-label">母体SKU</label>
+                        <div class="col-sm-3">
+                            <input class="form-control system_sku" name="maternal_sku" type="text" value="{{ order.system_sku }}"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <div class="col-sm-3 hidden">
+                            <select class="form-control select2" style="width:100%;" name="status">
+                                <option value="1">新建-保存</option>
+                                <option value="2">提交-等待审批</option>
+                            </select>
+                        </div>
+                    <label class="col-sm-2 control-label">采购人</label>
+                        <div class="col-sm-3">
+                            <select class="form-control select2" style="width:100%;" name="purchaser">
+                                {% for item in purchase_list %}
+                                    <option value="{{ item.id }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    <label class="col-sm-2 control-label">FBA(途中/仓库)库存</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="fba_store" oninput="value=value.replace(/[^\d]/g,'')" min="0" type="text"
+                                   value="{{ order.fba_store }}"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">对照码</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" name="comparison_code" type="text"
+                                   value="{{ order.comparison_code }}"/>
+                        </div>
+                        <label class="col-sm-2 control-label">最近30天销量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" oninput="value=value.replace(/[^\d]/g,'')" min="0" name="sales_30" type="text" value="{{ order.sales_30 }}"/>
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">采购数量</label>
+                        <div class="col-sm-3">
+                            <input class="form-control" value="{{ order.purchase_quantity }}" name="purchase_quantity"
+                                   type="text" oninput="value=value.replace(/[^\d]/g,'')" min="0"/>
+                        </div>
+
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">上传图片</label>
+                        <div class="col-sm-3">
+                            <label for="upload" class="control-label">
+                                    <img src="/media/image/default2.png" id="upload_img" height="40" width="40">
+                                </label>
+                                <input type="file" accept="image/*" style="display: none" name="mater_img" id="upload">
+                        </div>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="col-sm-2 control-label">备注内容</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" name="remark" rows="5">{{ order.remark }}</textarea>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="box-footer ">
+                <div class="row span7 text-center ">
+                    <button type="button" id="btnCancel" class="btn btn-default margin-right ">重置</button>
+                    {% for role in request.user.roles.all %}
+                        {% if role.title != "运营经理" %}
+                            <button type="button" id="btnSave" class="btn btn-primary margin-right ">保存</button>
+                        {% endif %}
+                    {% endfor %}
+                    <button type="button" id="btnSubmit" class="btn btn-info margin-right">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{% static 'plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap-datetimepicker.js' %}"></script>
+    <script type="text/javascript">
+        $("#upload").change(function(){
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(this.files[0]);// 读取文件是需要时间的
+            fileReader.onload = function () {
+            $("#upload_img").attr("src", fileReader.result);
+            };
+        });
+        $("#btnSave").click(function () {
+            var data = new FormData($("#addForm")[0]);
+            //data.set("status", "1");
+            //$.ajax({
+            //    type: $("#addForm").attr('method'),
+            //    url: "{% url 'personal-workorder-create' %}",
+            //    data: data,
+            //    contentType: false,
+            //    processData: false,
+            //    cache: false,
+            //    beforeSend: function () {
+            //        this.layerIndex = layer.load(1, {
+            //            shade: [0.1, '#fff'] //0.1透明度的白色背景
+            //        });
+            //    },
+            //    success: function (msg) {
+            //        layer.closeAll('loading');
+            //        if (msg.status == 'success') {
+            //            layer.alert('订单保存成功！', {icon: 1}, function (index) {
+            //                parent.layer.closeAll(); //关闭所有弹窗
+            //            });
+            //            window.location.reload();
+            //        } else if (msg.status == 'fail') {
+            //            layer.alert(msg.work_order_form_errors, {icon: 5});
+            //            window.location.reload();
+            //        } else if (msg.status == 'submit') {
+            //            layer.alert('订单申请已提交', {icon: 0}, function (index) {
+            //                parent.layer.closeAll(); //关闭所有弹窗
+            //            });
+            //            window.location.reload();
+            //        } else if (msg.status == 'submit_send') {
+            //            layer.alert('订单申请已提交', {icon: 1}, function (index) {
+            //                parent.layer.closeAll(); //关闭所有弹窗
+            //            });
+            //            window.location.reload();
+            //        }else{
+            //            layer.alert('订单申请已提交', {icon: 1}, function (index) {
+            //                parent.layer.closeAll(); //关闭所有弹窗
+            //            });
+            //            window.location.reload();
+            //        }
+            //        return;
+            //    }
+            //});
+        });
+        $("#btnSubmit").click(function () {
+            var data = new FormData($("#addForm")[0]);
+            data.set("status", "2");
+            data.set("compose", "1");
+            $.ajax({
+                type: $("#addForm").attr('method'),
+                url: "{% url 'personal-workorder-create' %}",
+                data: data,
+                contentType: false,
+                processData: false,
+                cache: false,
+                beforeSend: function () {
+                    this.layerIndex = layer.load(1, {
+                        shade: [0.1, '#fff'] //0.1透明度的白色背景
+                    });
+                },
+                success: function (msg) {
+                    layer.closeAll('loading');
+                    if (msg.status == 'success') {
+                        layer.alert('订单保存成功！', {icon: 1}, function (index) {
+                            parent.layer.closeAll(); //关闭所有弹窗
+                        });
+                        window.location.reload();
+                    } else if (msg.status == 'fail') {
+                        layer.alert(msg.work_order_form_errors, {icon: 5});
+                        window.location.reload();
+                    } else if (msg.status == 'submit') {
+                        layer.alert('订单申请已提交', {icon: 0}, function (index) {
+                            parent.layer.closeAll(); //关闭所有弹窗
+                            window.location.reload();
+                        });
+                    } else if (msg.status == 'submit_send') {
+                        layer.alert('订单申请已提交', {icon: 1}, function (index) {
+                            parent.layer.closeAll(); //关闭所有弹窗
+                            window.location.reload();
+                        });
+                    }else{
+                        layer.alert('订单申请已提交', {icon: 1}, function (index) {
+                            parent.layer.closeAll(); //关闭所有弹窗
+                            window.location.reload();
+                        });
+                    }
+                    return;
+                }
+            });
+        });
+        $(".addMater").click(function () {
+            let mater_sku = $(".system_sku").val();
+            if (mater_sku.length==0){
+                layer.msg("母体SKU不能为空！");
+                return
+            }
+
+            let html = `
+                        <div class="form-group">
+                        <div>
+                            <div>
+                                <div class="col-sm-2">图片</div>
+                                <div class="col-sm-2">子SKU</div>
+                                <div class="col-sm-2">中文名</div>
+                                <div class="col-sm-2">包装数量</div>
+                                <div class="col-sm-3">备注</div>
+                                <div class="col-sm-1" title="增加">
+                                <button type="button" class="btn btn-success addChildBtn">
+                                    添加
+                                </button>
+                                </div>
+                            </div>
+                            <div>
+                            <form class="form-horizontal" id="addChildForm" method="post">
+                            {% csrf_token %}
+                            <div class="col-sm-2">
+                            <input class="hidden" name="sku"/>
+                            <label for="modal_child_img">
+                                    <img src="/media/image/default2.png" id="child_img" height="36" width="40">
+                                </label>
+                                <input type="file" style="display: none;" accept="image/*" name="child_img" id="modal_child_img">
+                            </div>
+                            <div class="col-sm-2">
+                                <input class="form-control modal_child_sku" name="child_sku" value=""
+                                       type="text"/>
+                            </div>
+                            <div class="col-sm-2">
+                                <input class="form-control modal_child_name" name="child_name" value=""
+                                       type="text"/>
+                            </div>
+                            <div class="col-sm-2">
+                                <input class="form-control modal_child_number" name="number" value="1"
+                                       type="number"/>
+                            </div>
+                            <div class="col-sm-3">
+                                <input class="form-control modal_child_content" name="content" value=""
+                                       type="text"/>
+                            </div>
+                            </div>
+                            </form>
+                            </div>
+                            <hr class="col-sm-12">
+                            <div class="contents">
+                                <div class="item">
+                                    <div class="col-sm-2"><img src="/media/image/default2.png" class="item_img" height="45" width="40"></div>
+                                    <div class="col-sm-2 item_sku">fffdsfsfd</div>
+                                    <div class="col-sm-2 item_name">或发哦福建按多少 就啊 </div>
+                                    <div class="col-sm-2 item_number">20</div>
+                                    <div class="col-sm-2 item_content">发生纠纷垃圾发生的咖啡机</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+            layer.open({
+              type: 1,
+              skin: 'layui-layer-demo', //样式类名
+              closeBtn: 1, //不显示关闭按钮
+              anim: 2,
+              shadeClose: false, //开启遮罩关闭
+              area: ['800px', '480px'],
+              content: html,
+                yes:function(index){
+                  layer.close(index);
+                }
+            });
+            function getChild(){
+                 $.get("{% url 'personal-workorder-create' %}", {"mater_sku": mater_sku}, function (data) {
+                if (data){
+                    $(".contents").text("");
+                    for(let i in data.data){
+                        $(".contents").append(`<div class="item col-sm-12" style="border-bottom: 1px solid #bbb">
+                                    <div class="col-sm-2"><img src="/media/${data.data[i].child_img}" class="item_img" height="38" width="40"/></div>
+                                    <div class="col-sm-2 item_sku">${data.data[i].child_sku}</div>
+                                    <div class="col-sm-2 item_name">${data.data[i].child_name}</div>
+                                    <div class="col-sm-2 item_number">${data.data[i].number}</div>
+                                    <div class="col-sm-2 item_content">${data.data[i].content}</div>
+                                </div>`)
+                    }
+                }
+            });
+            }
+            getChild();
+            //子图片
+            $("#modal_child_img").change(function(){
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(this.files[0]);// 读取文件是需要时间的
+            fileReader.onload = function () {
+                $("#child_img").attr("src", fileReader.result);
+            };
+            });
+            //增加子SKU
+            $(".addChildBtn").click(function(){
+                let child_sku = $(".modal_child_sku").val();
+                if (child_sku.length<1){
+                    layer.msg("输入有误！！！");
+                    return
+                }
+                let data = new FormData($("#addChildForm")[0]);
+                data.set("sku", mater_sku);
+                data.set("createChild", "OK");
+                $.ajax({
+                    type: $("#addChildForm").attr('method'),
+                    url: "{% url 'personal-workorder-create' %}",
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    beforeSend: function () {
+                        this.layerIndex = layer.load(1, {
+                            shade: [0.1, '#fff'] //0.1透明度的白色背景
+                        });
+                    },
+                    success: function (msgs) {
+                        layer.closeAll('loading');
+                        if (msgs.status == 'success') {
+                            getChild()
+                        } else{
+                            layer.msg("网络异常", {icon: 5});
+                        };
+
+                    }
+                });
+            })
+        });
+        $(".maternal_sku").change(function(){
+           // $(".maternal_msg").removeClass("hidden");
+        });
+        /*点取消刷新新页面*/
+        $("#btnCancel").click(function () {
+            window.location.reload();
+        });
+        /*input 时间输入选择*/
+        $(".form_datetime").datetimepicker({
+            language: 'zh',
+            //weekStart: 1,
+            //todayBtn:  1,
+            autoclose: 1,
+            todayHighlight: 1,
+            //startView: 2,
+            forceParse: 0,
+            showMeridian: 1,
+            //format: 'yyyy-mm-dd'
+        }).on('changeDate', function (ev) {
+            $(this).datetimepicker('hide');
+        });
+        // select2
+        $(function () {
+            //Initialize Select2 Elements
+            $(".select2").select2();
+            if(window.location.search){
+                $(".compose").css({"color": "red"})
+            }else{
+                $(".end_product").css({"color": "red"})
+            }
+        });
+        $("#close-html").click(function () {
+            window.history.back()
+        });
+    </script>
+
+{% endblock %}

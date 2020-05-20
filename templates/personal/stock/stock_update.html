@@ -17,7 +17,7 @@
                 <fieldset>
                     <legend>
                         <div class="form-group has-feedback">
-                            <div class="col-sm-8">创建订单</div>
+                            <div class="col-sm-8"><a>成品</a><small>|</small><a href="/personal/stockmanage_Icrt/update?compose=1">组合产品</a></div>
                         </div>
                     </legend>
                     <div class="form-group has-feedback">
@@ -32,7 +32,6 @@
                             <input class="form-control" name="operation_manager" value="{{ operation_manager.id }}"
                                    type="hidden"/>
                         </div>
-
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">系统SKU</label>
@@ -56,10 +55,10 @@
                             <input class="form-control" name="purchase_quantity" min="1" max="{{ stock.stock_quantity }}" type="number"/>
                         </div>
                     </div>
-                    <div class="form-group has-feedback">
+                    <div class="form-group has-feedback hidden">
                         <label class="col-sm-2 control-label">订单状态</label>
                         <div class="col-sm-3">
-                            <select class="form-control select2" style="width:100%;" name="status">
+                            <select class="form-control select2 " style="width:100%;" name="status">
                                 <option value="1">新建-保存</option>
                                 <option value="2">提交-等待审批</option>
                             </select>
@@ -84,7 +83,6 @@
                             <input class="form-control" name="comparison_code" readonly type="text"
                                    value="{{ stock.comparison_code }}"/>
                         </div>
-
                     </div>
                     <div class="form-group has-feedback">
                         <label class="col-sm-2 control-label">最近30天销量</label>
@@ -98,7 +96,6 @@
                         </div>
                     </div>
                     <div class="form-group has-feedback">
-
                         <label class="col-sm-2 control-label">上传图片</label>
                         <div class="col-sm-3">
                             <input type="hidden" name='img' value="{{ stock.img }}"/>
@@ -116,7 +113,7 @@
             <div class="box-footer ">
                 <div class="row span7 text-center ">
                     <button type="button" id="btnCancel" class="btn btn-default margin-right ">重置</button>
-                    <button type="button" id="btnSave" class="btn btn-info margin-right ">保存</button>
+                    <button type="button" id="btnSave" class="btn btn-info margin-right ">提交</button>
                 </div>
             </div>
         </form>
@@ -153,7 +150,22 @@
                 }
             });
         });
-
+        $(".btnCreate").click(function () {
+            let url = $(this).attr("title");
+                var div = layer.open({
+                    type: 2,
+                    title: '新增商品库存',
+                    shadeClose: false,
+                    maxmin: true,
+                    area: ['800px', '600px'],
+                    content: url,
+                    end: function () {
+                        //关闭时做的事情
+                        oDataTable.ajax.reload();
+                    }
+                });
+                layer.full(div)
+            });
         /*点取消刷新新页面*/
         $("#btnCancel").click(function () {
             window.location.reload();

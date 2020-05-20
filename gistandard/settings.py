@@ -112,6 +112,7 @@ DATABASES = {
         'PASSWORD': '123456',
         'HOST': '192.168.1.103',
         'PORT': '3306',
+        'ATOMIC_REQUESTS': True
     }
 }
 

@@ -154,6 +154,7 @@ class StockOrderEditView(LoginRequiredMixin, View):
         ret["ids"] = ids
         return HttpResponse(json.dumps(ret), content_type='application/json')
 
+
 # 更新库存
 class StockOrderUpdateView(LoginRequiredMixin, View):
     """

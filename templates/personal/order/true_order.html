@@ -43,7 +43,7 @@
                 </button>
             </form>
             </div>
-             <div class="box-body">
+            <div class="box-body">
                 <table id="dtbList" class="display" cellspacing="0" width="100%">
                     <thead>
                     <tr valign="middle">
@@ -108,12 +108,12 @@
 						},
 						columns : [
 								DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
-                            {
-                                data:"child",
-                                render: function(data, type, row, meta){
-                                    return `<img src="{{ MEDIA_URL }}${data[0].img}" class="img-thumbnail" width=80 height=80>`
-                                }
-                            },
+                                {
+                                    data:"child",
+                                    render: function(data, type, row, meta){
+                                        return `<img src="{{ MEDIA_URL }}${data[0].img}" class="img-thumbnail" width=80 height=80>`
+                                    }
+                                },
 								{
 									data : "system_sku",
 								},
@@ -154,7 +154,6 @@
                                         }else{
                                            return "<input type='number' style='width: 60px' oninput=\"value=value.replace(/[^\\d]/g,'')\" min=\"0\" class='lack_warehouse_staff' value='"+data+"'>"
                                         }
-
 									}
                                 },
                                 {

@@ -84,6 +84,18 @@ class StockDeleteView(LoginRequiredMixin, View):
 class StockUpdateView(LoginRequiredMixin, View):
 
     def get(self, request):
+        if request.GET.get("compose"):
+            operation_manager = request.user.superior if request.user.superior else request.user
+            try:
+                number = Order.objects.latest('order_number').order_number
+            except Order.DoesNotExist:
+                number = ""
+            new_number = ToolKit.bulidNumber('SX', 9, number)
+            ret = {
+                'operation_manager': operation_manager,
+                'new_number': new_number,
+            }
+            return render(request, "personal/stock/stock_update_compose.html", ret)
         type_list = []
         if 'id' in request.GET and request.GET['id']:
             stock = get_object_or_404(Stock, pk=request.GET['id'])

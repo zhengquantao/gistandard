@@ -56,9 +56,16 @@ class MaternalSku(models.Model):
     number = models.IntegerField(null=True, default=0, blank=True, verbose_name='对应数量')
     position = models.CharField(max_length=500, verbose_name='货品位置', blank=True, null=True, default="")
     add_time = models.DateField(default=datetime.datetime.today, verbose_name='创建时间')
+    child_name = models.CharField(max_length=128, verbose_name='子中文名', null=True, default='', blank=True)
+    mater_img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
+    child_img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
+    content = models.CharField(max_length=128, verbose_name='备注', null=True, default='', blank=True)
 
 
 class Order(models.Model):
+    """
+    运营订单
+    """
     status_choices = (('0', '已退回订单'), ('1', '已保存-未提交'), ('2', '已提交-等待审批'), ('3', '已审批-等待采购'), ('4', '已采购-等待质检'), ('6', '已质检-等待打包'), ('5', '订单已完成'), ('7', '已质检-还需采购'), ('8', '已采购-暂时缺货'))
     finish_status_choices = (('0', '成品'), ('1', '配件'))
     system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
@@ -101,6 +108,57 @@ class Order(models.Model):
     read_choices = (('0', '未读'), ('1', '已读'))
     is_read = models.CharField(max_length=5, choices=read_choices, default='0', verbose_name='是否已读')
 
+
+class OrderManager(models.Model):
+    """
+    运营经理
+    """
+    # status_choices = (('0', '已提交-等待审批'), ('1', '已审批-等待采购'))
+    # finish_status_choices = (('0', '成品'), ('1', '配件'))
+    # system_sku = models.CharField(max_length=50, verbose_name='系统SKU')
+    # img = models.ImageField(upload_to="image/%Y/%m", max_length=100, null=True, blank=True)
+    # order_number = models.CharField(max_length=10, verbose_name='订单号')
+    # status = models.CharField(max_length=10, choices=status_choices, default='0', verbose_name='订单状态')
+    # product_chinese_name = models.CharField(max_length=500, verbose_name='产品中文名')
+    # comparison_code = models.CharField(max_length=20, verbose_name='对照码')
+    # finish_status = models.CharField(max_length=10, choices=finish_status_choices, default='0', verbose_name='是否成品')
+    # sales_30 = models.CharField(max_length=50, verbose_name='最近30天销量', null=True)
+    # purchase_quantity = models.IntegerField(verbose_name='运营采购数量', blank=True, null=True)
+    # add_time = models.DateField(default=datetime.datetime.today, verbose_name='创建时间')
+    # remark = models.CharField(max_length=500, verbose_name="运营备注", null=True, blank=True)
+    # remark1 = models.CharField(max_length=500, verbose_name="运营经理备注", null=True, blank=True)
+    # time2 = models.DateTimeField(verbose_name="运营经理确认时间", default=datetime.datetime.today, null="", blank=True)
+    # maternal_sku = models.ForeignKey(MaternalSku, related_name="maternal_sku", blank=True, null=True,
+    #                                  on_delete=models.SET_NULL, verbose_name='母体SKU')
+    # operation = models.ForeignKey(User, related_name='operation', blank=True, null=True, on_delete=models.SET_NULL,
+    #                               verbose_name='运营')
+    # operation_manager = models.ForeignKey(User, related_name='operation_manager', null=True, on_delete=models.SET_NULL,
+    #                                       verbose_name='运营经理')
+    # fba_store = models.IntegerField(verbose_name='FBA库存数', null=True, blank=True, default=0)
+    # load_num = models.IntegerField(verbose_name='在路上的数量', null=True, blank=True, default=0)
+    # read_choices = (('0', '未读'), ('1', '已读'))
+    # is_read = models.CharField(max_length=5, choices=read_choices, default='0', verbose_name='是否已读')
+
+
+class OrderBug(models.Model):
+    """
+    采购订单
+    """
+    pass
+
+
+class OrderCheck(models.Model):
+    """
+    质检订单
+    """
+    pass
+
+
+class OrderPack(models.Model):
+    """
+    打包订单
+    """
+    pass
 
 class Stock(models.Model):
     status_choices = (
